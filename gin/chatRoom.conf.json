@@ -1,0 +1,1 @@
+{"RedisPassword":"123456","RedisAddr":"0.0.0.0:6379","RedisDB":0,"GinPort":":12306","ListenerLastLen":5,"NumOfConcurrentMsg":10}

@@ -1,0 +1,46 @@
+body {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    overflow: hidden;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+div {
+  color: #ffffff;
+}
+
+.el-input__wrapper {
+  border-radius: 1.4em;
+  transition: all 0.2s ease-in-out;
+
+  &.is-focus {
+    box-shadow: none;
+  }
+}
+
+.el-input__inner {
+  font-size: large;
+}
+
+.el-message {
+  border-radius: 1.4em;
+  z-index: 999;
+  margin-top: 5em;
+  background-color: #1f1f1f;
+  border: 0;
+  text-align: center;
+  width: auto;
+  min-width: 4em;
+
+  .el-message__content {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  i {
+    display: none;
+  }
+}

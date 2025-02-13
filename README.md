@@ -22,12 +22,12 @@ git clone https://gitee.com/Hu_BanXian/chatroom
 
 将redis数据库配置文件redis.conf中的以下内容修改为以下内容：
 ```bash
-bind 192.168.0.0      # 服务器ipv4地址，请自行查看并修改，并修改项目配置文件cathRoom.conf.json中的RedisAddr项
-port 6379             # 服务器端口号，如需修改请一起修改项目配置文件cathRoom.conf.json中的RedisAddr项
+bind 192.168.0.0      # 服务器ipv4地址，请自行查看并修改，并修改项目配置文件chatRoom.conf.json中的RedisAddr项
+port 6379             # 服务器端口号，如需修改请一起修改项目配置文件chatRoom.conf.json中的RedisAddr项
 maxclients 10000      # 最大连接数，请根据实际情况修改（一名用户会同时建立两个连接，用户上传文件时会额外建立一个连接，上传文件结束后关闭）
 databases 20          # 数据库数量，默认聊天数据库为0，此外每有用户上传一个文件（图片除外）就会新建一个数据库，若数据库数量已满会导致文件上传失败，请根据实际情况修改
 maxmemory 1048576000  # 最大内存请根据服务器实际情况修改
-requirepass 123456    # 服务器密码，请根据实际情况修改，并修改项目配置文件cathRoom.conf.json中的RedisPassword项
+requirepass 123456    # 服务器密码，请根据实际情况修改，并修改项目配置文件chatRoom.conf.json中的RedisPassword项
 ```
 
 3. 启动redis数据库
@@ -35,7 +35,7 @@ requirepass 123456    # 服务器密码，请根据实际情况修改，并修�
 - 请注意，redis数据库关闭后会清除所有数据，关闭服务器请提前备份好数据。
 
 ## 项目配置文件
-项目配置文件位于项目根目录的gin/cathRoom.conf.json，包含以下内容：
+项目配置文件位于项目根目录的gin/chatRoom.conf.json，包含以下内容：
 ```json
 {
   "RedisPassword": "123456",    # 数据库密码
@@ -51,7 +51,7 @@ requirepass 123456    # 服务器密码，请根据实际情况修改，并修�
 ```json
 {
   "Id": "000",                # 用户id，此项不能为空，内容和长度可以自定义，但是必须唯一（请部署者自行与用户沟通，或修改项目来防止用户修改）。
-  "Name": "迷糊老师",           # 用户昵称，此项不能为空
+  "Name": "迷糊老师",          # 用户昵称，此项不能为空
 	"Level": 10,                # 用户等级，可以为空
 	"Avatar": "",               # 用户头像，可以为空  ！此功能还未完成，请勿填写此项
 	"Title": "高贵的群主",        # 用户头衔，可以为空

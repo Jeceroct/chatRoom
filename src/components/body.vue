@@ -18,13 +18,8 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import request from '@/axios'
-
-// const fs = require('fs')
-// const path = require('path')
-// const dataPath = path.join(__dirname, 'data.json')
-// const config = fs.readFileSync(dataPath, 'utf-8')
-// const datas = JSON.parse(config)
 
 const user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
 
@@ -33,7 +28,7 @@ const newMsgNum = ref(0)
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 // const msgsData = ref("")
 
-const addMsgHTML = (msg, msgBoxEle) => {
+const addMsgHTML = async (msg, msgBoxEle) => {
   var newHtml = ""
   if (msgBoxEle.hasChildNodes() && msgBoxEle.lastChild.getAttribute("userId") == msg.From.Id) {
     if (msg.From.Id == user.Id) {
@@ -89,7 +84,9 @@ const addMsgHTML = (msg, msgBoxEle) => {
   if (msg.Type == 'file') {
     newHtml = newHtml.replace(`<div class="text">` + msg.Context + `</div>`, `<div class="text file">${msg.Context}</div>`)
     msgBoxEle.innerHTML += newHtml
-    msgBoxEle.lastChild.addEventListener('click', () => {
+    const fileEle = msgBoxEle.querySelectorAll('.file')[msgBoxEle.querySelectorAll('.file').length - 1]
+    await fileEle.addEventListener('click', () => {
+      ElMessage.info('正在下载文件')
       request.post('/download', msg)
     })
   } else {
@@ -220,7 +217,7 @@ onMounted(async () => {
         .textBox {
           justify-content: end;
         }
-        .text.first {
+        &.first .text {
           border-top-right-radius: 0em;
           border-top-left-radius: 1em;
         }

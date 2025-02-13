@@ -113,20 +113,16 @@ func uploadFile(re redis.Conn, file postType.FileType) (string, error) {
 	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB())
 	for i := 0; ; i++ {
 		_, err := reRead.Do("GET", file.Title)
-		if err == nil {
-			break
-		} else {
+		if err != nil {
 			file.Title = file.Title + "(" + fmt.Sprint(i) + ")"
+		} else {
+			break
 		}
 	}
 	reRead.Close()
 
 	// 提取Base64编码部分(base64,位置后的部分)
-	base64Data := file.Context
-	if strings.HasPrefix(base64Data, "base64,") {
-		base64Data = base64Data[strings.Index(base64Data, ","):]
-	}
-
+	base64Data := file.Context[strings.Index(file.Context, ",")+1:]
 	// 解码Base64
 	data, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {

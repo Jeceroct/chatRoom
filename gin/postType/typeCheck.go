@@ -74,10 +74,7 @@ func HandleFile(msg PostRequest, c *gin.Context, re redis.Conn) string {
 
 func handleImage(msg PostRequest, c *gin.Context) string {
 	// 提取Base64编码部分
-	base64Data := msg.Context
-	if strings.HasPrefix(base64Data, "base64,") {
-		base64Data = base64Data[strings.Index(base64Data, ","):]
-	}
+	base64Data := msg.Context[strings.Index(msg.Context, ",")+1:]
 
 	// 解码Base64
 	data, err := base64.StdEncoding.DecodeString(base64Data)

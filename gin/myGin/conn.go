@@ -15,9 +15,9 @@ func Connect(port string, re redis.Conn, channel chan postType.PostRequest) *gin
 	Post(gi, re, channel)
 	gi.Static("/", "./dist")
 	fmt.Println("软件后端已启动")
-	// go gi.Run(port)
-	// startView("http://localhost" + port)
-	gi.Run(port)
+	go gi.Run(port)
+	startView("http://localhost" + port)
+	// gi.Run(port)
 	return gi
 }
 

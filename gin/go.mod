@@ -5,6 +5,7 @@ go 1.23.5
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gomodule/redigo v1.9.2
+	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/polevpn/webview v1.0.13
 )
 

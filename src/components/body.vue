@@ -81,17 +81,25 @@ const addMsgHTML = async (msg, msgBoxEle) => {
     newHtml = newHtml.replace(`<div class="text">` + msg.Context + `</div>`, `<img src="${process.env.VUE_APP_API_ADDR}${msg.Context}">`)
     msgBoxEle.innerHTML += newHtml
   } else
-  if (msg.Type == 'file') {
-    newHtml = newHtml.replace(`<div class="text">` + msg.Context + `</div>`, `<div class="text file">${msg.Context}</div>`)
-    msgBoxEle.innerHTML += newHtml
-    const fileEle = msgBoxEle.querySelectorAll('.file')[msgBoxEle.querySelectorAll('.file').length - 1]
-    await fileEle.addEventListener('click', () => {
-      ElMessage.info('正在下载文件')
-      request.post('/download', msg)
-    })
-  } else {
-    msgBoxEle.innerHTML += newHtml
-  }
+    if (msg.Type == 'file') {
+      newHtml = newHtml.replace(`<div class="text">` + msg.Context + `</div>`, `<div class="text file" addr="${msg.Context}">${msg.Context}</div>`)
+      msgBoxEle.innerHTML += newHtml
+      const fileEle = msgBoxEle.querySelectorAll('.file')
+      await fileEle.forEach(i => {
+        i.style.cursor = 'pointer'
+        const msgi = {
+          Title: i.innerText,
+          Context: i.getAttribute('addr'),
+          From: msg.From
+        }
+        i.addEventListener('click', () => {
+          ElMessage.info('正在下载文件')
+          request.post('/download', msgi)
+        })
+      })
+    } else {
+      msgBoxEle.innerHTML += newHtml
+    }
   // msgsData.value += newHtml
 }
 
@@ -214,9 +222,11 @@ onMounted(async () => {
 
       &.myself {
         align-items: end;
+
         .textBox {
           justify-content: end;
         }
+
         &.first .text {
           border-top-right-radius: 0em;
           border-top-left-radius: 1em;
@@ -302,9 +312,9 @@ onMounted(async () => {
         border-radius: 1em;
       }
 
-      .file {
+      /* .file {
         cursor: pointer;
-      }
+      } */
     }
   }
 }

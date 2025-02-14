@@ -1,9 +1,17 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
+  <div class="emojiBoxMask"></div>
+  <EmojiPicker :native="true" :theme="'dark'" :display-recent="true"
+    :static-texts="{ placeholder: '搜索表情', skinTone: '更换肤色' }" :group-names="emojiGroup"
+    @select="insertEmoji" class="emojiBox" />
   <div class="container">
     <form @submit.prevent="send">
       <div class="input">
-        <el-input v-model="inputValue"></el-input>
+        <el-input v-model="inputValue">
+          <template #prefix>
+            <font-awesome-icon :icon="['fas', 'face-smile']" size="lg" @click="openEmoji" style="cursor: pointer;" />
+          </template>
+        </el-input>
         <el-button @click="more" id="moreBtn"><el-icon size="1.5em" color="#fff">
             <Files />
           </el-icon></el-button>
@@ -22,6 +30,18 @@ import request from '@/axios'
 
 const inputValue = ref('')
 
+const emojiGroup = {
+  "recently_used": "最近使用",
+  "smileys_people": "微笑与人物",
+  "animals_nature": "动物与自然",
+  "food_drink": "食物与饮料",
+  "activities": "活动",
+  "travel_places": "旅行与地点",
+  "objects": "物体",
+  "symbols": "符号",
+  "flags": "旗帜"
+}
+
 const msg = {
   Type: 'text',
   Context: inputValue.value,
@@ -33,6 +53,26 @@ const user = computed(() => {
   const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
   return userInfo
 })
+
+const openEmoji = () => {
+  const emojiBox = document.querySelector('.emojiBox')
+  const emojiBoxMask = document.querySelector('.emojiBoxMask')
+  emojiBox.classList.add('show')
+  emojiBoxMask.classList.add('show')
+  emojiBoxMask.addEventListener('click', () => {
+    emojiBox.classList.remove('show')
+    emojiBoxMask.classList.remove('show')
+  })
+}
+
+const insertEmoji = (emoji) => {
+  const inputEle = document.querySelector('.el-input__inner')
+  inputEle.focus()
+  const start = inputEle.selectionStart
+  const end = inputEle.selectionEnd
+  if (start === undefined || end === undefined) return
+  inputValue.value = inputEle.value.substring(0, start) + emoji.i + inputEle.value.substring(end)
+}
 
 const more = async () => {
   let fileHandles = await window.showOpenFilePicker({
@@ -77,11 +117,47 @@ const send = () => {
   msg.From = user.value
   request.post('/send', msg).then(() => {
     inputValue.value = ''
+    const emojiBox = document.querySelector('.emojiBox')
+    const emojiBoxMask = document.querySelector('.emojiBoxMask')
+    emojiBox.classList.remove('show')
+    emojiBoxMask.classList.remove('show')
   })
 }
 </script>
 
 <style scoped>
+.emojiBoxMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  z-index: 998;
+
+  &.show {
+    display: block;
+  }
+}
+
+.emojiBox {
+  position: absolute;
+  bottom: -5em;
+  left: 0;
+  width: 100%;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 999;
+
+  transition: all 0.2s ease-in-out;
+
+  &.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 5em;
+  }
+}
+
 .container {
   display: flex;
   flex-direction: column;

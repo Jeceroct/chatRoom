@@ -7,6 +7,25 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import './style/main.css'
 
+import EmojiPicker from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
+
+/* import the fontawesome core */
+import { library } from '@fortawesome/fontawesome-svg-core'
+
+/* import font awesome icon component */
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+/* import specific icons */
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+
+/* add brands to the library */
+
+/* add icons to the library */
+library.add(fas, far, fab)
+
 const app = createApp(App)
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -15,4 +34,10 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.use(ElementPlus)
 
-app.use(router).mount('#app')
+app.component('font-awesome-icon', FontAwesomeIcon)
+
+app.component('EmojiPicker',EmojiPicker)
+
+app.use(router)
+
+app.mount('#app')

@@ -30,5 +30,5 @@ func main() {
 	channel := make(chan postType.PostRequest, config.NumOfConcurrentMsg())
 	myRedis.StartListen(reGet, "chat", channel)
 	// 启动本地服务
-	myGin.Connect(config.GinPort(), reSend, channel)
+	myGin.Start(config.GinPort(), reSend, channel)
 }

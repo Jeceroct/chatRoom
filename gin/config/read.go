@@ -34,13 +34,13 @@ func init() {
 		}
 		if err1 != nil || err2 != nil {
 			os.WriteFile(configPath, []byte(`{
-				"RedisPassword": "123456",
-				"RedisAddr": "0.0.0.0:6379",
+				"RedisPassword": "",
+				"RedisAddr": "",
 				"RedisDB": "0",
   			"GinPort": ":12306",
   			"ListenerLastLen": 0,
   			"NumOfConcurrentMsg": 10,
-				"RoomName": "望子成龙小学"
+				"RoomName": ""
 			}`), 0644)
 			content, err1 = os.ReadFile(configPath)
 			err2 = json.Unmarshal(content, &payload)

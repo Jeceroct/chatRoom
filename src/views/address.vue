@@ -2,18 +2,17 @@
 <template>
   <routeMask />
   <div class="container">
-    <h1>使用该聊天室的账户登录</h1>
+    <h1>欢迎来到聊天室</h1>
     <el-form @submit.prevent="send">
-      <div class="inputBox id">
-        <input v-model="idValue" class="input" placeholder="你在此聊天室的用户id" />
+      <div class="inputBox address">
+        <input v-model="addressValue" class="input" placeholder="请输入聊天室的网络地址" />
         <span>此项不能为空</span>
       </div>
       <div class="inputBox password">
-        <input v-model="passwordValue" class="input" placeholder="你在此聊天室的用户的密码" />
+        <input v-model="passwordValue" class="input" placeholder="请输入聊天室的密码" />
         <span>此项不能为空</span>
       </div>
-      <button class="loginBtn" @click="signup">还没有此聊天室的账户？去注册</button>
-      <button class="submitBtn" type="submit">进入</button>
+      <button class="submitBtn" type="submit">确定</button>
     </el-form>
   </div>
 </template>
@@ -24,26 +23,26 @@ import routeMask from '../components/routeMask.vue'
 import { getStatus } from '@/utils/getStatus'
 
 import { onMounted, ref } from 'vue'
-import { ElMessage } from 'element-plus';
 import request from '../axios'
-import { useRouter } from 'vue-router'
-const router = useRouter();
+// import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus';
+// const router = useRouter();
 
-const idValue = ref('')
+const addressValue = ref('')
 const passwordValue = ref('')
 
-const signup = () => {
-  const routeMaskEle = document.querySelector('#routeMask')
-  routeMaskEle.classList.add('leave')
-  routeMaskEle.classList.remove('waiting')
-  setTimeout(() => {
-    router.push('/signup')
-  }, 200)
-}
-
 const send = () => {
-  idValue.value = idValue.value.trim()
+  addressValue.value = addressValue.value.trim()
   passwordValue.value = passwordValue.value.trim()
+
+  if (addressValue.value === '') {
+    const addressEle = document.querySelector('.address')
+    addressEle.classList.remove('hasValue')
+    addressEle.classList.add('error')
+    addressEle.querySelector('input').addEventListener('input', () => {
+      addressEle.classList.remove('error')
+    })
+  }
   if (passwordValue.value === '') {
     const passwordEle = document.querySelector('.password')
     passwordEle.classList.remove('hasValue')
@@ -52,33 +51,25 @@ const send = () => {
       passwordEle.classList.remove('error')
     })
   }
-  if (idValue.value === '') {
-    const idEle = document.querySelector('.id')
-    idEle.querySelector('span').innerHTML = '此项不能为空'
-    idEle.classList.remove('hasValue')
-    idEle.classList.add('error')
-    idEle.querySelector('input').addEventListener('input', () => {
-      idEle.classList.remove('error')
-    })
-  }
 
-  if (passwordValue.value === '' || idValue.value === '') {
+  if (addressValue.value === '' || passwordValue.value === '') {
     return
   }
 
   const req = new FormData()
 
-  req.append('id', idValue.value)
+  req.append('address', addressValue.value)
   req.append('password', passwordValue.value)
+  req.append('db', '0')
 
-  request.post('/login', req, {}).then(res => {
+  request.post('/address', req, {}).then(res => {
     console.log(res)
     if (res.code == '200') {
       const routeMaskEle = document.querySelector('#routeMask')
       routeMaskEle.classList.add('leave')
       routeMaskEle.classList.remove('waiting')
     } else {
-      ElMessage.warning('用户Id或密码错误')
+      ElMessage.warning('聊天室地址或密码错误')
     }
   })
 }
@@ -96,6 +87,7 @@ onMounted(() => {
     })
   })
 })
+
 </script>
 
 <style>

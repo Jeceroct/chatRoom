@@ -1,26 +1,31 @@
 <template>
-  <myheader />
-  <myfooter />
-  <mybody />
+  <router-view />
 </template>
 
 <script setup>
-import myheader from './components/header.vue'
-import myfooter from './components/footer.vue'
-import mybody from './components/body.vue'
-import request from './axios'
-// import { onMounted } from 'vue'
-// import FastClick from 'fastclick'
-// onMounted(async () => {
-//   FastClick.attach(document.body)
-// })
-const getUserInfo = () => {
-  request.post('/getUserInfo').then(res => {
-    console.log(res)
-    localStorage.setItem('chatRoomUserInfo', JSON.stringify(res))
-  })
-}
-getUserInfo()
+// import request from './axios'
+// const getUserInfo = () => {
+//   request.post('/getUserInfo').then(res => {
+//     console.log(res)
+//     localStorage.setItem('chatRoomUserInfo', JSON.stringify(res))
+//   })
+// }
+// getUserInfo()
+
+import { getStatus } from '@/utils/getStatus'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+
+onMounted(async () => {
+  for (; ;) {
+    await sleep(1000)
+    getStatus(router)
+  }
+})
+
 </script>
 
 <style>

@@ -1,48 +1,48 @@
-package config
+package myUser
 
 import (
 	"encoding/json"
 	"os"
 )
 
-func UpdateListenerLastLen(lastLen int64) {
-	payload.ListenerLastLen = lastLen
+func UpdateId(id string) {
+	payload.Id = id
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
 
-func UpdateRedisAddr(addr string) {
-	payload.RedisAddr = addr
+func UpdateName(name string) {
+	payload.Name = name
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
 
-func UpdateRedisPassword(password string) {
-	payload.RedisPassword = password
+func UpdateLevel(level int) {
+	payload.Level = level
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
 
-func UpdateRedisDB(db string) {
-	payload.RedisDB = db
+func UpdateAvatar(avatar string) {
+	payload.Avatar = avatar
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
 
-func UpdateGinPort(port string) {
-	payload.GinPort = port
+func UpdateTitle(title string) {
+	payload.Title = title
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
 
-func UpdateNumOfConcurrentMsg(num int) {
-	payload.NumOfConcurrentMsg = num
+func UpdateTitleColor(titleColor string) {
+	payload.TitleColor = titleColor
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
 
-func UpdateRoomName(name string) {
-	payload.RoomName = name
+func UpdatePhone(phone string) {
+	payload.Phone = phone
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }

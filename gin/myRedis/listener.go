@@ -21,7 +21,7 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest) {
 			fmt.Println("获取列表长度失败，redis连接失效：", err)
 			channel <- postType.ParseError(postType.ErrorMsg("500", "Redis连接失效"))
 			for {
-				conn = Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB())
+				conn = Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 				if conn != nil {
 					break
 				}
@@ -40,7 +40,7 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest) {
 				fmt.Println("获取新增元素失败，redis连接失效：", err)
 				channel <- postType.ParseError(postType.ErrorMsg("500", "Redis连接失效"))
 				for {
-					conn = Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB())
+					conn = Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 					if conn != nil {
 						break
 					}

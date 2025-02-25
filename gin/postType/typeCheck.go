@@ -33,7 +33,7 @@ func TypeCheck(msg PostRequest, c *gin.Context) PostRequest {
 	return msg
 }
 
-func HandleFile(msg PostRequest, c *gin.Context, re redis.Conn) string {
+func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	// fileMsg := ParseFileContext(msg)
 	path := "/download/" + msg.Context
 	// 如果download文件夹不存在，则创建
@@ -47,7 +47,7 @@ func HandleFile(msg PostRequest, c *gin.Context, re redis.Conn) string {
 		return path
 	}
 	// 如果路径下没有同名文件，则从redis中获取文件内容并保存到本地
-	context, err := redis.String(re.Do("GET", msg.Context))
+	context, err := redis.String(reGet.Do("GET", msg.Context))
 	if err != nil {
 		fmt.Println("获取文件内容时发生错误：", err)
 		c.JSON(501, gin.H{

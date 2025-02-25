@@ -11,11 +11,13 @@ import (
 type Config struct {
 	RedisPassword string
 	RedisAddr     string
-	RedisDB       int
+	RedisDB       string
 	GinPort       string
 
 	ListenerLastLen    int64
 	NumOfConcurrentMsg int
+
+	RoomName string
 }
 
 var configPath = "./chatRoom.conf.json"
@@ -34,9 +36,11 @@ func init() {
 			os.WriteFile(configPath, []byte(`{
 				"RedisPassword": "123456",
 				"RedisAddr": "0.0.0.0:6379",
-				"RedisDB": 0,
+				"RedisDB": "0",
   			"GinPort": ":12306",
-  			"ListenerLastLen": 0
+  			"ListenerLastLen": 0,
+  			"NumOfConcurrentMsg": 10,
+				"RoomName": "望子成龙小学"
 			}`), 0644)
 			content, err1 = os.ReadFile(configPath)
 			err2 = json.Unmarshal(content, &payload)
@@ -50,9 +54,10 @@ func init() {
 		fmt.Println("Redis密码未设置(\"RedisPassword\")")
 	}
 	if payload.RedisAddr == "" {
-		error.Exit("Redis地址和端口是必需的，请检查配置文件", 1)
+		// error.Exit("Redis地址和端口是必需的，请检查配置文件", 1)
+		fmt.Println("Redis地址未设置(\"RedisAddr\")")
 	}
-	if payload.RedisDB == 0 {
+	if payload.RedisDB == "" {
 		fmt.Println("Redis数据库未设置,将使用默认数据库(\"RedisDB\")")
 	}
 	if payload.GinPort == "" {
@@ -67,6 +72,9 @@ func init() {
 		fmt.Println("消息同步加载数量未设置,将使用默认值10(\"NumOfConcurrentMsg\")")
 		payload.NumOfConcurrentMsg = 10
 	}
+	if payload.RoomName == "" {
+		fmt.Println("聊天室名称获取失败(\"RoomName\")")
+	}
 	fmt.Println("读取配置文件成功")
 }
 
@@ -78,7 +86,7 @@ func RedisAddr() string {
 	return payload.RedisAddr
 }
 
-func RedisDB() int {
+func RedisDB() string {
 	return payload.RedisDB
 }
 
@@ -92,4 +100,8 @@ func ListenerLastLen() int64 {
 
 func NumOfConcurrentMsg() int {
 	return payload.NumOfConcurrentMsg
+}
+
+func RoomName() string {
+	return payload.RoomName
 }

@@ -48,7 +48,7 @@ request.interceptors.response.use(
     }
     errorShown = true
     if (error.response.status === 404) {
-      ElMessage.error('未知的请求接口')
+      // ElMessage.error('未知的请求接口')
     } else if (error.response.status === 500) {
       ElMessage.error('无法连接至服务器')
     } else if (error.response.status === 501) {
@@ -60,7 +60,7 @@ request.interceptors.response.use(
     setTimeout(() => {
       errorShown = false
     }, 4000)
-    console.error(error.response)
+    console.warn(error.response)
     return Promise.reject(error)
   }
 )

@@ -2,12 +2,14 @@ package myRedis
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/gomodule/redigo/redis"
 )
 
-func Connect(addr string, password string, db int) redis.Conn {
-	conn, err := redis.Dial("tcp", addr, redis.DialPassword(password), redis.DialDatabase(db))
+func Connect(addr string, password string, db string, dbIndex int) redis.Conn {
+	database, _ := strconv.Atoi(db)
+	conn, err := redis.Dial("tcp", addr, redis.DialPassword(password), redis.DialDatabase(database+dbIndex))
 	if err != nil {
 		fmt.Println(err)
 		return nil

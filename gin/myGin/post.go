@@ -30,7 +30,7 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 		if req.Type == "file" {
 			file := postType.ParseFileContext(req)
 			var err error
-			req.Context, err = uploadFile(re, file)
+			req.Context, err = uploadFile(file)
 			if err != nil {
 				fmt.Println("向redis写入文件时失败", err)
 				c.JSON(500, gin.H{
@@ -46,7 +46,7 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 				"message": "消息发送失败,Redis连接错误",
 			})
 			for {
-				re = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB())
+				re = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 				if re != nil {
 					break
 				}
@@ -103,14 +103,22 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 			})
 			return
 		}
-		path := postType.HandleFile(msg, c, re)
+		reGet := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
+		path := postType.HandleFile(msg, c, reGet)
+		reGet.Close()
 		c.JSON(200, path)
+	})
+
+	gi.POST("/getStatus", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "start",
+		})
 	})
 }
 
-func uploadFile(re redis.Conn, file postType.FileType) (string, error) {
+func uploadFile(file postType.FileType) (string, error) {
 	// 先检查redis中是否已经有同名文件
-	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB())
+	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
 	for i := 0; ; i++ {
 		_, err := reRead.Do("GET", file.Title)
 		if err != nil {
@@ -129,6 +137,8 @@ func uploadFile(re redis.Conn, file postType.FileType) (string, error) {
 		fmt.Println("解码Base64时错误：", err)
 		return "", err
 	}
-	_, err1 := re.Do("SET", file.Title, data)
+	reSend := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
+	_, err1 := reSend.Do("SET", file.Title, data)
+	reSend.Close()
 	return file.Title, err1
 }

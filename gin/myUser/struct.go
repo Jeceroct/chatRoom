@@ -28,16 +28,33 @@ var content, err1 = os.ReadFile(configPath)
 var err2 = json.Unmarshal(content, &payload)
 
 func init() {
-	if err1 != nil || err2 != nil {
-		error.Exit("读取用户配置失败，请检查用户配置文件", 1)
+	for i := 0; ; i++ {
+		if i > 4 {
+			error.Exit("用户配置文件创建失败，请检查程序是否有写入权限", 1)
+		}
+		if err1 != nil || err2 != nil {
+			os.WriteFile(configPath, []byte(`{
+				"Level": 0,
+				"Avatar": "",
+				"Title": "",
+				"TitleColor": "",
+				"Phone": ""
+			}`), 0644)
+			content, err1 = os.ReadFile(configPath)
+			err2 = json.Unmarshal(content, &payload)
+		} else {
+			break
+		}
 	}
 
 	// 设置默认值
 	if payload.Id == "" {
-		error.Exit("用户Id是必需的，请检查用户配置(\"Id\")", 1)
+		// error.Exit("用户Id是必需的，请检查用户配置(\"Id\")", 1)
+		fmt.Println("用户未登录(\"Id\")")
 	}
 	if payload.Name == "" {
-		error.Exit("用户名称是必需的，请检查用户配置(\"Name\")", 1)
+		// error.Exit("用户名称是必需的，请检查用户配置(\"Name\")", 1)
+		fmt.Println("用户未登录(\"Name\")")
 	}
 	if payload.Level < 0 {
 		payload.Level = 0

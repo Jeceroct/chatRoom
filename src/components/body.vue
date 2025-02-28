@@ -27,6 +27,9 @@ const user = computed(() => {
   return userInfo
 })
 
+const openImgPeriod = ref(true)
+const openFilePeriod = ref(true)
+
 const newMsgNum = ref(0)
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
@@ -88,8 +91,15 @@ const addMsgHTML = async (msg, msgBoxEle) => {
     await imgEle.forEach(i => {
       i.style.cursor = 'pointer'
       i.addEventListener('click', () => {
-        ElMessage.info('调用外部应用打开图片')
-        request.post('/openImg', msg)
+        if (openImgPeriod.value) {
+          request.post('/openImg', msg)
+          openImgPeriod.value = false
+        } else {
+          ElMessage.info('图片已打开，请勿多次点击')
+        }
+        setTimeout(() => {
+          openImgPeriod.value = true
+        }, 2000)
       })
     })
   } else
@@ -106,8 +116,16 @@ const addMsgHTML = async (msg, msgBoxEle) => {
           From: msg.from
         }
         i.addEventListener('click', () => {
-          ElMessage.info('正在下载文件')
-          request.post('/download', msgi)
+          if (openFilePeriod.value) {
+            ElMessage.info('正在下载文件')
+            request.post('/download', msgi)
+            openFilePeriod.value = false
+          } else {
+            ElMessage.info('文件正在下载，请勿多次点击')
+          }
+          setTimeout(() => {
+            openFilePeriod.value = true
+          }, 2000)
         })
       })
     } else {

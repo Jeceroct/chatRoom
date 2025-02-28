@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkchatroom"]=self["webpackChunkchatroom"]||[]).push([[75],{1241:function(c,n){n.A=(c,n)=>{const t=c.__vccOpts||c;for(const[r,o]of n)t[r]=o;return t}},1075:function(c,n,t){t.r(n),t.d(n,{default:function(){return f}});var r=t(6768);const o={class:"c"};function s(c,n){return(0,r.uX)(),(0,r.CE)("div",o," 软件正在启动中... ")}var u=t(1241);const e={},a=(0,u.A)(e,[["render",s],["__scopeId","data-v-31d07082"]]);var f=a}}]);
+//# sourceMappingURL=75.51254ad4.js.map

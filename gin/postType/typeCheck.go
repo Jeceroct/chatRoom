@@ -101,7 +101,7 @@ func handleImage(msg PostRequest, c *gin.Context) string {
 		if _, err := os.Stat(basePath + path); os.IsNotExist(err) {
 			break
 		}
-		path = fmt.Sprintf("%s(%d)", path, i)
+		path = fmt.Sprintf("%s%d", path, i)
 		i++
 	}
 	file, err := os.Create(basePath + path)

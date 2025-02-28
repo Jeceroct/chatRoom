@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,9 @@ func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	// 如果路径下已有同名文件，则直接返回文件路径
 	if _, err := os.Stat(basePath + path); err == nil {
 		// 直接使用cmd打开文件
-		go exec.Command("cmd", "/c", "start", basePath+path).Run()
+		cmd := exec.Command("cmd", "/c", "start", basePath+path)
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+		go cmd.Run()
 		return path
 	}
 	// 如果路径下没有同名文件，则从redis中获取文件内容并保存到本地
@@ -70,7 +73,9 @@ func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	if _, err := file.Write(data); err != nil {
 		fmt.Println("保存文件时发生错误：", err)
 	}
-	go exec.Command("cmd", "/c", "start", basePath+path).Run()
+	cmd := exec.Command("cmd", "/c", "start", basePath+path)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	go cmd.Run()
 	return path
 }
 
@@ -144,5 +149,7 @@ func OpenImg(path string) {
 	tempDir := os.TempDir()
 	tempFile := filepath.Join(tempDir, "temp_image."+kind.Extension)
 	os.Remove(tempFile)
-	go exec.Command("cmd", "/C", "copy", absolutePath, tempFile, "&&", "start", "", tempFile).Run()
+	cmd := exec.Command("cmd", "/C", "copy", absolutePath, tempFile, "&&", "start", "", tempFile)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	go cmd.Run()
 }

@@ -17,7 +17,7 @@
           "version": ""
         },
         "description": "",
-        "minimum-os": "win10",
+        "minimum-os": "win7",
         "execution-level": "highest",
         "ui-access": false,
         "auto-elevate": false,

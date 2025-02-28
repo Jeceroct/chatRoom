@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
+	"path/filepath"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
@@ -13,12 +16,19 @@ import (
 	webview "github.com/webview/webview_go"
 )
 
+const (
+	ICON_SMALL = 0 // 对应 Windows SDK 的 ICON_SMALL
+	ICON_BIG   = 1 // 对应 Windows SDK 的 ICON_BIG
+)
+
 var closeServer_main = false
 
 func Start(port string, re redis.Conn, channel chan postType.PostRequest, end chan bool) *gin.Engine {
 
 	gi := gin.Default()
-	gi.Static("/", "./dist")
+	staticAbsoluteAddr, _ := filepath.Abs(path.Join("./dist"))
+	gi.Static("/", staticAbsoluteAddr)
+	fmt.Println("已挂载以下页面：", staticAbsoluteAddr)
 	Post(gi, re, channel)
 	fmt.Println("软件后端已启动")
 	server := &http.Server{
@@ -49,6 +59,28 @@ func StartView(addr string) {
 	hwnd := w.Window()
 	go func() {
 		hWnd := win.HWND(hwnd)
+
+		// 加载图标文件
+		hIcon := win.LoadImage(
+			0,
+			syscall.StringToUTF16Ptr("./dist/favicon_256.ico"), // 图标路径
+			win.IMAGE_ICON,
+			0, 0,
+			win.LR_LOADFROMFILE|win.LR_DEFAULTSIZE,
+		)
+		if hIcon == 0 {
+			log.Printf("无法加载图标: %v", win.GetLastError())
+		} else {
+			// 设置窗口图标
+			win.SendMessage(hWnd, win.WM_SETICON, ICON_SMALL, uintptr(hIcon))
+			win.SendMessage(hWnd, win.WM_SETICON, ICON_BIG, uintptr(hIcon))
+		}
+		defer func() {
+			if hIcon != 0 {
+				win.DestroyIcon(win.HICON(hIcon))
+			}
+		}()
+
 		// win.SetWindowPos(hWnd, win.HWND_TOPMOST, 0, 0, 0, 0, win.SWP_NOMOVE|win.SWP_NOSIZE) // 置顶
 		win.SetWindowPos(hWnd, win.HWND_NOTOPMOST, 0, 0, 0, 0, win.SWP_NOMOVE|win.SWP_NOSIZE) // 不置顶
 		style := win.GetWindowLong(hWnd, win.GWL_STYLE)                                       // 普通窗口样式
@@ -63,8 +95,8 @@ func StartView(addr string) {
 	defer w.Destroy()
 	w.SetTitle("望子成龙聊天室")
 	// w.SetSize(720, 1280, webview.HintNone)
-	fmt.Println("软件页面已启动:", addr)
 	w.Navigate(addr)
+	fmt.Println("软件页面已启动:", addr)
 	// w.Navigate("http://localhost:12306/")
 	w.Run()
 }

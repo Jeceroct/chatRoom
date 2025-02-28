@@ -17,11 +17,15 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/axios'
 
-const user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
+// var user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
+const user = computed(() => {
+  const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
+  return userInfo
+})
 
 const newMsgNum = ref(0)
 
@@ -30,67 +34,76 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 const addMsgHTML = async (msg, msgBoxEle) => {
   var newHtml = ""
-  if (msgBoxEle.hasChildNodes() && msgBoxEle.lastChild.getAttribute("userId") == msg.From.Id) {
-    if (msg.From.Id == user.Id) {
+  if (msgBoxEle.hasChildNodes() && msgBoxEle.lastChild.getAttribute("userId") == msg.from.id) {
+    if (msg.from.id == user.value.id) {
       newHtml = `
-          <div class="msg myself" userId="${msg.From.Id}">
+          <div class="msg myself" userId="${msg.from.id}">
             <div class="textBox">
-              <div class="time">${msg.Time}</div>
-              <div class="text">`+ msg.Context + `</div>
+              <div class="time">${msg.time}</div>
+              <div class="text">`+ msg.context + `</div>
             </div>
           </div>`
     } else {
       newHtml = `
-            <div class="msg" userId="${msg.From.Id}">
+            <div class="msg" userId="${msg.from.id}">
               <div class="textBox">
-                <div class="text">`+ msg.Context + `</div>
-                <div class="time">${msg.Time}</div>
+                <div class="text">`+ msg.context + `</div>
+                <div class="time">${msg.time}</div>
               </div>
             </div>`
     }
   } else {
-    if (msg.From.Id == user.Id) {
+    if (msg.from.id == user.value.id) {
       newHtml = `
-          <div class="msg first myself" userId="${msg.From.Id}">
+          <div class="msg first myself" userId="${msg.from.id}">
             <div class="user">
-              <div class="level">Lv${msg.From.Level}</div>
-              <div class="title" style="background-color:${msg.From.TitleColor}">${msg.From.Title}</div>
-              <div class="name">${msg.From.Name}</div>
+              <div class="level">Lv${msg.from.level}</div>
+              <div class="title" style="background-color:${msg.from.titleColor}">${msg.from.title}</div>
+              <div class="name">${msg.from.name}</div>
             </div>
             <div class="textBox">
-              <div class="time">${msg.Time}</div>
-              <div class="text">`+ msg.Context + `</div>
+              <div class="time">${msg.time}</div>
+              <div class="text">`+ msg.context + `</div>
             </div>
           </div>`
     } else {
       newHtml = `
-            <div class="msg first" userId="${msg.From.Id}">
+            <div class="msg first" userId="${msg.from.id}">
               <div class="user">
-                <div class="name">${msg.From.Name}</div>
-                <div class="title" style="background-color:${msg.From.TitleColor}">${msg.From.Title}</div>
-                <div class="level">Lv${msg.From.Level}</div>
+                <div class="name">${msg.from.name}</div>
+                <div class="title" style="background-color:${msg.from.titleColor}">${msg.from.title}</div>
+                <div class="level">Lv${msg.from.level}</div>
               </div>
               <div class="textBox">
-                <div class="text">`+ msg.Context + `</div>
-                <div class="time">${msg.Time}</div>
+                <div class="text">`+ msg.context + `</div>
+                <div class="time">${msg.time}</div>
               </div>
             </div>`
     }
   }
-  if (msg.Type == 'image') {
-    newHtml = newHtml.replace(`<div class="text">` + msg.Context + `</div>`, `<img src="${process.env.VUE_APP_API_ADDR}${msg.Context}">`)
-    msgBoxEle.innerHTML += newHtml
+  if (msg.type == 'image') {
+    newHtml = newHtml.replace(`<div class="text">` + msg.context + `</div>`, `<img src="${process.env.VUE_APP_API_ADDR}${msg.context}">`)
+    msgBoxEle.insertAdjacentHTML('beforeend', newHtml);
+    const imgEle = msgBoxEle.lastElementChild.querySelectorAll('img')
+    await imgEle.forEach(i => {
+      i.style.cursor = 'pointer'
+      i.addEventListener('click', () => {
+        ElMessage.info('调用外部应用打开图片')
+        request.post('/openImg', msg)
+      })
+    })
   } else
-    if (msg.Type == 'file') {
-      newHtml = newHtml.replace(`<div class="text">` + msg.Context + `</div>`, `<div class="text file" addr="${msg.Context}">${msg.Context}</div>`)
-      msgBoxEle.innerHTML += newHtml
-      const fileEle = msgBoxEle.querySelectorAll('.file')
+    if (msg.type == 'file') {
+      newHtml = newHtml.replace(`<div class="text">` + msg.context + `</div>`, `<div class="text file" addr="${msg.context}"><span>文件</span><div class="fileCont">${msg.context}</div></div>`)
+      msgBoxEle.insertAdjacentHTML('beforeend', newHtml);
+      const fileEle = msgBoxEle.lastElementChild.querySelectorAll('.file')
       await fileEle.forEach(i => {
+        i.style.padding = '0'
         i.style.cursor = 'pointer'
         const msgi = {
-          Title: i.innerText,
+          title: i.innerText,
           Context: i.getAttribute('addr'),
-          From: msg.From
+          From: msg.from
         }
         i.addEventListener('click', () => {
           ElMessage.info('正在下载文件')
@@ -98,7 +111,7 @@ const addMsgHTML = async (msg, msgBoxEle) => {
         })
       })
     } else {
-      msgBoxEle.innerHTML += newHtml
+      msgBoxEle.insertAdjacentHTML('beforeend', newHtml);
     }
   // msgsData.value += newHtml
 }
@@ -112,6 +125,7 @@ onMounted(async () => {
       if (res.length > 100) {
         res = res.slice(res.length - 100, res.length)
       }
+      console.log(res)
       res.forEach(i => {
         addMsgHTML(i, msgBoxEle)
       });
@@ -312,9 +326,23 @@ onMounted(async () => {
         border-radius: 1em;
       }
 
-      /* .file {
-        cursor: pointer;
-      } */
+      .file {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        & span {
+          font-size: x-small;
+          margin: 0.4em 1.3em;
+          color: #888;
+        }
+        & .fileCont {
+        margin: 0.5em;
+        margin-top: 0;
+        padding: 0.4em 0.8em;
+        background-color: #ffffff1b;
+        border-radius: 1em;
+      }
+      }
     }
   }
 }

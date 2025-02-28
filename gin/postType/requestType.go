@@ -6,10 +6,18 @@ import (
 )
 
 type PostRequest struct {
-	Type    string
-	Context string
-	Time    string
-	From    myUser.User
+	Type    string      `json:"type"`
+	Context string      `json:"context"`
+	Time    string      `json:"time"`
+	From    myUser.User `json:"from"`
+	Quote   QuoteType   `json:"quote"`
+}
+
+type QuoteType struct {
+	From    myUser.User `json:"from"`
+	Type    string      `json:"type"`
+	Context string      `json:"context"`
+	Time    string      `json:"time"`
 }
 
 type FileType struct {
@@ -37,6 +45,7 @@ func ParseError(err Error) PostRequest {
 		Context: err.Context,
 		Time:    err.Code,
 		From:    myUser.User{},
+		Quote:   QuoteType{},
 	}
 }
 

@@ -11,13 +11,13 @@ import (
 )
 
 type User struct {
-	Id         string
-	Name       string
-	Level      int
-	Avatar     string
-	Title      string
-	TitleColor string
-	Phone      string
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Level      int    `json:"level"`
+	Avatar     string `json:"avatar"`
+	Title      string `json:"title"`
+	TitleColor string `json:"titleColor"`
+	Phone      string `json:"phone"`
 }
 
 var configPath = "./user.conf.json"

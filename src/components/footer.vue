@@ -27,8 +27,11 @@
 import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/axios'
+import RequestType from '@/class/RequestType'
 
 const inputValue = ref('')
+
+const quoteValue = ref(null)
 
 const emojiGroup = {
   "recently_used": "最近使用",
@@ -42,12 +45,20 @@ const emojiGroup = {
   "flags": "旗帜"
 }
 
-const msg = {
-  Type: 'text',
-  Context: inputValue.value,
-  Time: new Date().toLocaleTimeString(),
-  From: 'user'
-}
+// const msg = {
+//   Type: 'text',
+//   Context: inputValue.value,
+//   Time: new Date().toLocaleTimeString(),
+//   From: 'user'
+// }
+
+const msg = new RequestType(
+  RequestType.Type().text,
+  '',
+  new Date().toLocaleTimeString(),
+  RequestType.User(),
+  quoteValue
+)
 
 const user = computed(() => {
   const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
@@ -82,25 +93,39 @@ const more = async () => {
     const file = await fileHandle.getFile()
     // 检测是否是图片
     if (file.type.indexOf('image') === -1) {
-      msg.Type = 'file'
+      // msg.requestType.type = RequestType.Type().file
       const reader = new FileReader()
       reader.readAsDataURL(file)
       reader.onload = async () => {
-        msg.Context = `{"Title": "${file.name}", "Context": "${reader.result}"}`
-        msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-        msg.From = user.value
-        request.post('/send', msg)
+        // msg.requestType.context = `{"Title": "${file.name}", "Context": "${reader.result}"}`
+        // msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        // msg.From = user.value
+        msg.setRequestType(
+          RequestType.Type().file,
+          RequestType.FileContext(file.name, reader.result),
+          `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+          user.value,
+          quoteValue
+        )
+        request.post('/send', msg.getResult())
       }
     } else {
-      msg.Type = 'image'
+      // msg.Type = 'image'
       // 获取文件base64内容
       const reader = new FileReader()
       reader.readAsDataURL(file)
       reader.onload = async () => {
-        msg.Context = reader.result
-        msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-        msg.From = user.value
-        request.post('/send', msg)
+        // msg.Context = reader.result
+        // msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        // msg.From = user.value
+        msg.setRequestType(
+          RequestType.Type().image,
+          reader.result,
+          `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+          user.value,
+          quoteValue
+        )
+        request.post('/send', msg.getResult())
       }
     }
   })
@@ -111,12 +136,20 @@ const send = () => {
     ElMessage.info('请输入内容')
     return
   }
-  msg.Type = 'text'
-  msg.Context = inputValue.value
-  msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-  msg.From = user.value
-  request.post('/send', msg).then(() => {
+  // msg.Type = 'text'
+  // msg.Context = inputValue.value
+  // msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  // msg.From = user.value
+  msg.setRequestType(
+    RequestType.Type().text,
+    inputValue.value,
+    `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+    user.value,
+    quoteValue
+  )
+  request.post('/send', msg.getResult()).then(() => {
     inputValue.value = ''
+    quoteValue.value = null
     const emojiBox = document.querySelector('.emojiBox')
     const emojiBoxMask = document.querySelector('.emojiBoxMask')
     emojiBox.classList.remove('show')

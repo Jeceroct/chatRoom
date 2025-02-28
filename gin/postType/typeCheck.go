@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
+	"github.com/h2non/filetype"
 )
 
 var basePath = "./dist"
@@ -113,4 +115,34 @@ func handleImage(msg PostRequest, c *gin.Context) string {
 		})
 	}
 	return path
+}
+
+func OpenImg(path string) {
+	img := strings.Replace(basePath, "./", "", -1) + strings.Replace(path, "/", "\\", -1)
+	absolutePath, _ := filepath.Abs(img)
+	// 检测文件类型
+	file, err := os.Open(absolutePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// 读取文件头部字节（261字节足够检测常见类型）
+	buf := make([]byte, 261)
+	_, err = file.Read(buf)
+	if err != nil {
+		panic(err)
+	}
+
+	// 匹配文件类型
+	kind, err := filetype.Match(buf)
+	if err != nil || kind == filetype.Unknown {
+		fmt.Println("无法识别文件类型")
+		return
+	}
+
+	tempDir := os.TempDir()
+	tempFile := filepath.Join(tempDir, "temp_image."+kind.Extension)
+	os.Remove(tempFile)
+	go exec.Command("cmd", "/C", "copy", absolutePath, tempFile, "&&", "start", "", tempFile).Run()
 }

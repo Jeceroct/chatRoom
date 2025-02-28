@@ -12,9 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gen2brain/beeep"
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
 )
+
+// 设置通知间隔时间变量
+var notifyPeriod = true
 
 func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 
@@ -79,6 +83,17 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 		}
 		fmt.Println("收到消息: ", res)
 		data.UpdateData(res)
+
+		// 间隔5秒发送通知
+		if notifyPeriod {
+			// notify.Notify("望子成龙小学", res[0].From.Name, res[0].Context, "")
+			beeep.Notify(res[0].From.Name, res[0].Context, "")
+			notifyPeriod = false
+			go func() {
+				time.Sleep(5 * time.Second)
+				notifyPeriod = true
+			}()
+		}
 		c.JSON(200, gin.H{
 			"message": res,
 		})
@@ -92,6 +107,21 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 	// 获取历史消息
 	gi.POST("/getHistory", func(c *gin.Context) {
 		c.JSON(200, data.GetData())
+	})
+
+	// 打开图片
+	gi.POST("/openImg", func(c *gin.Context) {
+		var msg postType.PostRequest
+		if err := c.BindJSON(&msg); err != nil {
+			c.JSON(401, gin.H{
+				"message": "消息格式错误",
+			})
+			return
+		}
+		postType.OpenImg(msg.Context)
+		c.JSON(200, gin.H{
+			"message": "图片已打开",
+		})
 	})
 
 	// 下载文件

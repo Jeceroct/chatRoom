@@ -33,6 +33,7 @@ const idValue = ref('')
 const passwordValue = ref('')
 
 const signup = () => {
+  idValue.value = ''
   const routeMaskEle = document.querySelector('#routeMask')
   routeMaskEle.classList.add('leave')
   routeMaskEle.classList.remove('waiting')

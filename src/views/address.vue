@@ -10,7 +10,7 @@
       </div>
       <div class="inputBox password">
         <input v-model="passwordValue" class="input" placeholder="请输入聊天室的密码" />
-        <span>此项不能为空</span>
+        <span>警告：此聊天室没有设置密码</span>
       </div>
       <button class="submitBtn" type="submit">确定</button>
     </el-form>
@@ -52,7 +52,7 @@ const send = () => {
     })
   }
 
-  if (addressValue.value === '' || passwordValue.value === '') {
+  if (addressValue.value === '') {
     return
   }
 

@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="c">
-    <h1>软件正在启动中...</h1>
+    软件正在启动中...
   </div>
 </template>
 

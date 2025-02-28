@@ -43,6 +43,7 @@ const titleValue = ref('')
 const isIdUsed = ref(false)
 
 const login = () => {
+  idValue.value = ''
   const routeMask = document.querySelector('#routeMask')
   routeMask.classList.add('leave')
   routeMask.classList.remove('waiting')

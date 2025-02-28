@@ -60,28 +60,28 @@ const addMsgHTML = async (msg, msgBoxEle) => {
       newHtml = `
           <div class="msg first myself" userId="${msg.from.id}">
             <div class="user">
-              <div class="level">Lv${msg.from.level}</div>
               <div class="title" style="background-color:${msg.from.titleColor}">${msg.from.title}</div>
               <div class="name">${msg.from.name}</div>
-            </div>
-            <div class="textBox">
-              <div class="time">${msg.time}</div>
-              <div class="text">`+ msg.context + `</div>
-            </div>
-          </div>`
+              </div>
+              <div class="textBox">
+                <div class="time">${msg.time}</div>
+                <div class="text">`+ msg.context + `</div>
+                </div>
+                </div>`
+                // <div class="level">Lv${msg.from.level}</div>
     } else {
       newHtml = `
             <div class="msg first" userId="${msg.from.id}">
               <div class="user">
                 <div class="name">${msg.from.name}</div>
                 <div class="title" style="background-color:${msg.from.titleColor}">${msg.from.title}</div>
-                <div class="level">Lv${msg.from.level}</div>
-              </div>
-              <div class="textBox">
-                <div class="text">`+ msg.context + `</div>
-                <div class="time">${msg.time}</div>
-              </div>
-            </div>`
+                </div>
+                <div class="textBox">
+                  <div class="text">`+ msg.context + `</div>
+                  <div class="time">${msg.time}</div>
+                  </div>
+                  </div>`
+                  // <div class="level">Lv${msg.from.level}</div>
     }
   }
   if (msg.type == 'image') {

@@ -13,15 +13,11 @@
 > <p style="color: red;">！ 项目还在开发过程中，诸多问题待解决... ！</p>
 > 后续会测试将本地部署的DeepSeek-R1接入聊天室，提供ai对话
 
-## 项目部署
-1. 下载项目代码
-```bash
-git clone https://gitee.com/Hu_BanXian/chatroom
-```
-2. 在服务器安装并配置redis数据库
+## 数据库部署
+1. 在服务器安装并配置redis数据库
 > 安装教程请自行搜索...
 
-将redis数据库配置文件redis.conf中的内容修改为以下内容：
+2. 将redis数据库配置文件redis.conf中的内容修改为以下内容：
 ```bash
 bind 192.168.0.0      # 服务器ipv4地址，请自行查看并修改，并修改项目配置文件chatRoom.conf.json中的RedisAddr项
 port 6379             # 服务器端口号，如需修改请一起修改项目配置文件chatRoom.conf.json中的RedisAddr项

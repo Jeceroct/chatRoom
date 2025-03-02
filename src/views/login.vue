@@ -12,7 +12,7 @@
         <input v-model="passwordValue" class="input" placeholder="你在此聊天室的用户的密码" />
         <span>此项不能为空</span>
       </div>
-      <button class="loginBtn" @click="signup">还没有此聊天室的账户？去注册</button>
+      <button class="loginBtn" @click="signup" type="reset">还没有此聊天室的账户？去注册</button>
       <button class="submitBtn" type="submit">进入</button>
     </el-form>
   </div>

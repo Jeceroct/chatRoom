@@ -19,7 +19,7 @@
       <div class="inputBox title">
         <input v-model="titleValue" class="input" placeholder="给自己一个头衔吧，不过有没有无所谓了" />
       </div>
-      <button id="loginBtn" class="loginBtn" @click="login">去登录</button>
+      <button id="loginBtn" class="loginBtn" @click="login" type="reset">去登录</button>
       <button id="submitBtn" class="submitBtn" type="submit">注册</button>
     </el-form>
   </div>

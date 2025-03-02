@@ -45,7 +45,7 @@ func Start(port string, re redis.Conn, channel chan postType.PostRequest, end ch
 		if closeServer_main {
 			server.Close()
 			end <- true
-			fmt.Println("聊天室连接成功")
+			fmt.Println("软件后端已关闭")
 			break
 		}
 	}
@@ -60,10 +60,11 @@ func StartView(addr string) {
 	go func() {
 		hWnd := win.HWND(hwnd)
 
+		lpszName, _ := syscall.UTF16PtrFromString("./dist/favicon_256.ico") // 图标路径
 		// 加载图标文件
 		hIcon := win.LoadImage(
 			0,
-			syscall.StringToUTF16Ptr("./dist/favicon_256.ico"), // 图标路径
+			lpszName,
 			win.IMAGE_ICON,
 			0, 0,
 			win.LR_LOADFROMFILE|win.LR_DEFAULTSIZE,
@@ -90,6 +91,17 @@ func StartView(addr string) {
 		win.MoveWindow(hWnd, int32(10), int32(10), int32(720), int32(1280), true) // 移动窗口位置和大小
 		win.SendMessage(hWnd, win.WM_KEYDOWN, 0x0000007A, 0x20380001)             // 按下按键
 		win.SendMessage(hWnd, win.WM_KEYUP, 0x0000007A, 0x003C0001)               // 抬起按键
+		// 监听窗口消息
+		// go func() {
+		var msg win.MSG
+		for {
+			if win.GetMessage(&msg, 0, 0, 0) <= 0 {
+				break
+			}
+			win.TranslateMessage(&msg)
+			win.DispatchMessage(&msg)
+		}
+		// }()
 	}()
 
 	defer w.Destroy()

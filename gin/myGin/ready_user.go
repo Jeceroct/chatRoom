@@ -1,6 +1,8 @@
 package myGin
 
 import (
+	"chatroom/config"
+	"chatroom/myRedis"
 	"chatroom/myUser"
 	"encoding/json"
 	"fmt"
@@ -21,11 +23,11 @@ type User struct {
 
 var closeServer_user = false
 
-func BeforeStart(port string, end chan bool, reCheck redis.Conn) {
+func BeforeStart(port string, end chan bool) {
 	gi := gin.Default()
 	gi.Static("/", "./dist")
 
-	user_post(gi, reCheck)
+	user_post(gi)
 
 	server := &http.Server{
 		Addr:    port,
@@ -48,13 +50,15 @@ func BeforeStart(port string, end chan bool, reCheck redis.Conn) {
 	}
 }
 
-func user_post(gi *gin.Engine, reCheck redis.Conn) {
+func user_post(gi *gin.Engine) {
 	gi.POST("/login", func(c *gin.Context) {
 		var user1 User
 		var user2 User
 		c.BindJSON(&user1)
 		fmt.Println("登录请求: ", user1.Id, user1.Password)
+		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 		context, err := reCheck.Do("GET", user1.Id)
+		reCheck.Close()
 		if err != nil {
 			c.JSON(200, gin.H{
 				"code": "501",
@@ -93,7 +97,9 @@ func user_post(gi *gin.Engine, reCheck redis.Conn) {
 		var userP User
 		c.BindJSON(&userP)
 		fmt.Println("注册请求: ", userP.Id, userP.Password)
+		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 		ok, _ := redis.Bool(reCheck.Do("EXISTS", userP.Id))
+		reCheck.Close()
 		if ok {
 			c.JSON(200, gin.H{
 				"code": "501",
@@ -101,19 +107,29 @@ func user_post(gi *gin.Engine, reCheck redis.Conn) {
 			})
 		}
 		con, _ := json.Marshal(userP)
-		reCheck.Do("SET", userP.Id, con)
-		reCheck.Do("SADD", "userList", userP.Id)
-		c.JSON(200, gin.H{
-			"code": "200",
-			"msg":  "注册成功",
-		})
+		reCheck = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+		_, err1 := reCheck.Do("SET", userP.Id, con)
+		_, err2 := reCheck.Do("SADD", "userList", userP.Id)
+		reCheck.Close()
+		if err1 != nil || err2 != nil {
+			c.JSON(501, gin.H{
+				"msg": "注册失败,可能是redis连接失效",
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"code": "200",
+				"msg":  "注册成功",
+			})
+		}
 	})
 
 	gi.POST("/checkIdUsed", func(c *gin.Context) {
 		var user User
 		c.BindJSON(&user)
 		fmt.Println("检查请求: ", user.Id)
-		ok, _ := redis.Bool(reCheck.Do("EXISTS", user.Id))
+		reIdCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+		ok, _ := redis.Bool(reIdCheck.Do("EXISTS", user.Id))
+		reIdCheck.Close()
 		if ok {
 			c.JSON(200, gin.H{
 				"code": "501",

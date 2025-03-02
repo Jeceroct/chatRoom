@@ -86,8 +86,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 
 		// 间隔5秒发送通知
 		if notifyPeriod {
-			// notify.Notify("望子成龙小学", res[0].From.Name, res[0].Context, "")
-			beeep.Notify(res[0].From.Name, res[0].Context, "")
+			// notify.Notify("望子成龙小学", res[0].From.Name, res[0].Context, "./dist/favicon_256.ico")
+			beeep.Notify(res[0].From.Name, res[0].Context, "./dist/favicon_256.ico")
 			notifyPeriod = false
 			go func() {
 				time.Sleep(5 * time.Second)

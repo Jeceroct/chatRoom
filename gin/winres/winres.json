@@ -13,15 +13,15 @@
     "#1": {
       "0409": {
         "identity": {
-          "name": "",
-          "version": ""
+          "name": "hrx.chatRoom",
+          "version": "0.2.3"
         },
-        "description": "",
-        "minimum-os": "win7",
-        "execution-level": "highest",
+        "description": "望子成龙小学聊天室",
+        "minimum-os": "win10",
+        "execution-level": "asInvoker",
         "ui-access": false,
         "auto-elevate": false,
-        "dpi-awareness": "system",
+        "dpi-awareness": "permonitorv2",
         "disable-theming": false,
         "disable-window-filtering": false,
         "high-resolution-scrolling-aware": false,
@@ -30,7 +30,11 @@
         "printer-driver-isolation": false,
         "gdi-scaling": false,
         "segment-heap": false,
-        "use-common-controls-v6": false
+        "use-common-controls-v6": false,
+        "supportedOS": "windows10",
+        "toastActivator": {
+          "clsid": "{70ec276f-8c4a-46c3-99de-d0df7ea376f0}"
+        }
       }
     }
   },
@@ -38,21 +42,21 @@
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "0.2.2",
-          "product_version": "0.2.2"
+          "file_version": "0.2.3",
+          "product_version": "0.2.3"
         },
         "info": {
           "0409": {
             "Comments": "",
             "CompanyName": "",
-            "FileDescription": "",
-            "FileVersion": "",
+            "FileDescription": "望子成龙小学聊天室",
+            "FileVersion": "0.2.3",
             "InternalName": "",
-            "LegalCopyright": "",
+            "LegalCopyright": "Copyright © 2023",
             "LegalTrademarks": "",
-            "OriginalFilename": "",
+            "OriginalFilename": "chatroom.exe",
             "PrivateBuild": "",
-            "ProductName": "",
+            "ProductName": "望子成龙小学聊天室",
             "ProductVersion": "",
             "SpecialBuild": ""
           }

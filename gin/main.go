@@ -7,7 +7,10 @@ import (
 	"chatroom/myUser"
 	"chatroom/postType"
 	"fmt"
+	"path/filepath"
 	"time"
+
+	"golang.org/x/sys/windows/registry"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -17,6 +20,7 @@ var openAddress string
 var isInitialized = make(chan bool, 1)
 
 func main() {
+	registerAppID()
 	openAddress = "http://localhost" + config.GinPort() + "/"
 
 	go func() {
@@ -87,4 +91,16 @@ func checkUserInfo() {
 		return
 	}
 	isInitialized <- true
+}
+
+func registerAppID() {
+	keyPath := `Software\Classes\AppUserModelId\hrx.chatRoom`
+	k, _, err := registry.CreateKey(registry.CURRENT_USER, keyPath, registry.ALL_ACCESS)
+	if err != nil {
+		panic(err)
+	}
+	defer k.Close()
+	k.SetStringValue("DisplayName", "望子成龙小学")
+	iconAbsolutePath, _ := filepath.Abs("./dist/favicon_256.ico")
+	k.SetStringValue("IconUri", iconAbsolutePath)
 }

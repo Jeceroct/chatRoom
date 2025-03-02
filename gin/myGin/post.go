@@ -12,9 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gen2brain/beeep"
 	"github.com/gin-gonic/gin"
+	"github.com/go-toast/toast"
 	"github.com/gomodule/redigo/redis"
+	"golang.org/x/text/encoding/unicode"
 )
 
 // 设置通知间隔时间变量
@@ -81,19 +82,12 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 			msg = postType.TypeCheck(msg, c)
 			res = append(res, msg)
 		}
-		fmt.Println("收到消息: ", res)
 		data.UpdateData(res)
 
 		// 间隔5秒发送通知
-		if notifyPeriod {
-			// notify.Notify("望子成龙小学", res[0].From.Name, res[0].Context, "./dist/favicon_256.ico")
-			beeep.Notify(res[0].From.Name, res[0].Context, "./dist/favicon_256.ico")
-			notifyPeriod = false
-			go func() {
-				time.Sleep(5 * time.Second)
-				notifyPeriod = true
-			}()
-		}
+		notify(res)
+		fmt.Println("收到消息: ", toUTF8(res[0].From.Name), toUTF8(res[0].Context))
+
 		c.JSON(200, gin.H{
 			"message": res,
 		})
@@ -175,4 +169,26 @@ func uploadFile(file postType.FileType) (string, error) {
 	_, err1 := reSend.Do("SET", file.Title, data)
 	reSend.Close()
 	return file.Title, err1
+}
+
+func notify(res []postType.PostRequest) {
+	if notifyPeriod {
+		notification := toast.Notification{
+			AppID:   "hrx.chatRoom",
+			Title:   toUTF8(res[0].From.Name),
+			Message: toUTF8(res[0].Context),
+		}
+		if err := notification.Push(); err != nil {
+			panic(err)
+		}
+		go func() {
+			time.Sleep(5 * time.Second)
+			notifyPeriod = true
+		}()
+	}
+}
+
+func toUTF8(s string) string {
+	utf8Bytes, _ := unicode.UTF8.NewEncoder().Bytes([]byte(s))
+	return string(utf8Bytes)
 }

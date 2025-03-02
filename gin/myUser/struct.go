@@ -36,8 +36,8 @@ func init() {
 			os.WriteFile(configPath, []byte(`{
 				"Level": 0,
 				"Avatar": "",
-				"Title": "",
-				"TitleColor": "",
+				"Title": "新用户",
+				"TitleColor": "#8d0df5bc",
 				"Phone": ""
 			}`), 0644)
 			content, err1 = os.ReadFile(configPath)
@@ -65,10 +65,12 @@ func init() {
 	if payload.Title == "" {
 		fmt.Println("用户头衔未设置(\"Title\")")
 		payload.Title = "新用户"
+		UpdateTitle(payload.Title)
 	}
 	if payload.TitleColor == "" {
 		fmt.Println("用户头衔颜色未设置(\"TitleColor\")")
 		payload.TitleColor = "#8d0df5bc"
+		UpdateTitleColor(payload.TitleColor)
 	}
 	if payload.Phone == "" {
 		fmt.Println("用户手机号未设置(\"Phone\")")

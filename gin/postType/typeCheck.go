@@ -20,7 +20,7 @@ var basePath = "./dist"
 func TypeCheck(msg PostRequest, c *gin.Context) PostRequest {
 	switch msg.Type {
 	case "error":
-		c.JSON(501, gin.H{
+		c.JSON(901, gin.H{
 			"message": "不支持的消息类型",
 		})
 	case "image":
@@ -29,7 +29,7 @@ func TypeCheck(msg PostRequest, c *gin.Context) PostRequest {
 		// msg.Context = handleFile(msg, c)
 	case "text":
 	default:
-		c.JSON(501, gin.H{
+		c.JSON(901, gin.H{
 			"message": "不支持的消息类型",
 		})
 	}
@@ -55,7 +55,7 @@ func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	context, err := redis.String(reGet.Do("GET", msg.Context))
 	if err != nil {
 		fmt.Println("获取文件内容时发生错误：", err)
-		c.JSON(501, gin.H{
+		c.JSON(903, gin.H{
 			"message": "文件接收失败",
 		})
 	}
@@ -63,7 +63,7 @@ func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	file, err := os.Create(basePath + path)
 	if err != nil {
 		fmt.Println("创建文件失败：", err)
-		c.JSON(501, gin.H{
+		c.JSON(904, gin.H{
 			"message": "创建文件失败",
 		})
 	}
@@ -107,7 +107,7 @@ func handleImage(msg PostRequest, c *gin.Context) string {
 	file, err := os.Create(basePath + path)
 	if err != nil {
 		fmt.Println("创建文件失败：", err)
-		c.JSON(501, gin.H{
+		c.JSON(903, gin.H{
 			"message": "图片接收失败",
 		})
 	}
@@ -115,7 +115,7 @@ func handleImage(msg PostRequest, c *gin.Context) string {
 
 	if _, err := file.Write(data); err != nil {
 		fmt.Println("保存图片时发生错误：", err)
-		c.JSON(501, gin.H{
+		c.JSON(903, gin.H{
 			"message": "图片接收失败",
 		})
 	}

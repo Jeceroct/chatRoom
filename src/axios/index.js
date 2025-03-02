@@ -53,8 +53,16 @@ request.interceptors.response.use(
       ElMessage.error('无法连接至服务器')
     } else if (error.response.status === 501) {
       ElMessage.error('文件接收失败')
+    } else if (error.response.status === 901) {
+      ElMessage.error('未知的消息格式')
+    } else if (error.response.status === 902) {
+      ElMessage.error('文件发送失败')
+    } else if (error.response.status === 903) {
+      ElMessage.error('文件接收失败')
+    } else if (error.response.status === 904) {
+      ElMessage.error('文件创建失败')
     } else {
-      ElMessage.error('无法连接至服务器')
+      ElMessage.error('未知错误')
       console.error(error.message)
     }
     setTimeout(() => {

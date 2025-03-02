@@ -26,8 +26,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 	gi.POST("/send", func(c *gin.Context) {
 		var req postType.PostRequest
 		if err := c.BindJSON(&req); err != nil {
-			c.JSON(401, gin.H{
-				"message": "消息格式错误",
+			c.JSON(901, gin.H{
+				"message": "未知的消息格式",
 			})
 			return
 		}
@@ -37,7 +37,7 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 			req.Context, err = uploadFile(file)
 			if err != nil {
 				fmt.Println("向redis写入文件时失败", err)
-				c.JSON(500, gin.H{
+				c.JSON(902, gin.H{
 					"message": "文件上传失败",
 				})
 			}
@@ -46,8 +46,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 		_, err := re.Do("RPUSH", "chat", jsonMsg)
 		if err != nil {
 			fmt.Println(err)
-			c.JSON(500, gin.H{
-				"message": "消息发送失败,Redis连接错误",
+			c.JSON(501, gin.H{
+				"message": "消息发送失败,Redis连接失败",
 			})
 			for {
 				re = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
@@ -113,8 +113,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 	gi.POST("/openImg", func(c *gin.Context) {
 		var msg postType.PostRequest
 		if err := c.BindJSON(&msg); err != nil {
-			c.JSON(401, gin.H{
-				"message": "消息格式错误",
+			c.JSON(901, gin.H{
+				"message": "未知的消息格式",
 			})
 			return
 		}
@@ -128,8 +128,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 	gi.POST("/download", func(c *gin.Context) {
 		var msg postType.PostRequest
 		if err := c.BindJSON(&msg); err != nil {
-			c.JSON(401, gin.H{
-				"message": "消息格式错误",
+			c.JSON(901, gin.H{
+				"message": "未知的消息格式",
 			})
 			return
 		}

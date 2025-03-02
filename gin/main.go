@@ -82,8 +82,7 @@ func checkUserInfo() {
 	if myUser.GetInfo().Id == "" {
 		fmt.Println("用户信息未设置")
 		openAddress = "http://localhost" + config.GinPort() + "/login"
-		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
-		go myGin.BeforeStart(config.GinPort(), isInitialized, reCheck)
+		go myGin.BeforeStart(config.GinPort(), isInitialized)
 		// isInitialized = true
 		return
 	}

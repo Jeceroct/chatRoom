@@ -149,6 +149,10 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 func uploadFile(file postType.FileType) (string, error) {
 	// 先检查redis中是否已经有同名文件
 	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
+	if reRead == nil {
+
+		return "", fmt.Errorf("redis连接失败")
+	}
 	for i := 0; ; i++ {
 		_, err := reRead.Do("GET", file.Title)
 		if err != nil {

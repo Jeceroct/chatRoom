@@ -42,6 +42,15 @@ const nameValue = ref('')
 const titleValue = ref('')
 const isIdUsed = ref(false)
 
+// 防抖函数
+const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    };
+  };
+
 const login = () => {
   idValue.value = ''
   const routeMask = document.querySelector('#routeMask')
@@ -129,21 +138,25 @@ onMounted(() => {
 
   const idEle = document.querySelector('.id .input')
   const errorEle = document.querySelector('.id span')
-  idEle.addEventListener('input', () => {
-    request.post('/checkIdUsed',{'id': idValue.value}, {}).then(res => {
-      console.log(res)
+  const checkIdAvailability = debounce(() => {
+    if (!idValue.value.trim()) {
+      errorEle.innerHTML = '此项不能为空';
+      return;
+    }
+    request.post('/checkIdUsed', { id: idValue.value }, {}).then(res => {
       if (res.code === '501') {
-        errorEle.innerHTML = '此id已被使用'
-        idEle.parentElement.classList.remove('hasValue')
-        idEle.parentElement.classList.add('error')
-        isIdUsed.value = true
+        errorEle.innerHTML = '此id已被使用';
+        idEle.parentElement.classList.remove('hasValue');
+        idEle.parentElement.classList.add('error');
+        isIdUsed.value = true;
       } else {
-        errorEle.innerHTML = ''
-        idEle.parentElement.classList.remove('error')
-        isIdUsed.value = false
+        errorEle.innerHTML = '此id可用';
+        idEle.parentElement.classList.remove('error');
+        isIdUsed.value = false;
       }
-    })
-  })
+    });
+  }, 500);
+  idEle.addEventListener('input', checkIdAvailability);
 })
 
 </script>

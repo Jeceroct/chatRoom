@@ -51,6 +51,7 @@ func BeforeStart(port string, end chan bool) {
 }
 
 func user_post(gi *gin.Engine) {
+
 	gi.POST("/login", func(c *gin.Context) {
 		var user1 User
 		var user2 User
@@ -82,10 +83,9 @@ func user_post(gi *gin.Engine) {
 			myUser.UpdateId(user.Id)
 			myUser.UpdateName(user.Name)
 			myUser.UpdateTitle(user.Title)
-			myUser.UpdateLevel(user.Level)
-			myUser.UpdatePhone(user.Phone)
-			myUser.UpdateTitleColor(user.TitleColor)
 			myUser.UpdateAvatar(user.Avatar)
+
+			// 关闭用户登录界面
 			go func() {
 				time.Sleep(1 * time.Second)
 				closeServer_user = true
@@ -106,6 +106,9 @@ func user_post(gi *gin.Engine) {
 				"msg":  "用户已存在",
 			})
 		}
+		if userP.Title == "" {
+			userP.Title = "新用户"
+		}
 		con, _ := json.Marshal(userP)
 		reCheck = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 		_, err1 := reCheck.Do("SET", userP.Id, con)
@@ -125,20 +128,28 @@ func user_post(gi *gin.Engine) {
 
 	gi.POST("/checkIdUsed", func(c *gin.Context) {
 		var user User
+		reIdCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
 		c.BindJSON(&user)
 		fmt.Println("检查请求: ", user.Id)
-		reIdCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
-		ok, _ := redis.Bool(reIdCheck.Do("EXISTS", user.Id))
+		ok, err := redis.Bool(reIdCheck.Do("EXISTS", user.Id))
 		reIdCheck.Close()
+		if err != nil {
+			fmt.Println("检查失败: ", err)
+			c.JSON(501, gin.H{
+				"msg": "检查失败,可能是redis连接失效",
+			})
+		}
 		if ok {
 			c.JSON(200, gin.H{
 				"code": "501",
 				"msg":  "用户已存在",
 			})
+			fmt.Println("检查结果: 用户已存在")
 		} else {
 			c.JSON(200, gin.H{
 				"code": "200",
 			})
+			fmt.Println("检查结果: 此id可用")
 		}
 	})
 

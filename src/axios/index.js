@@ -52,7 +52,7 @@ request.interceptors.response.use(
     } else if (error.response.status === 500) {
       ElMessage.error('无法连接至服务器')
     } else if (error.response.status === 501) {
-      ElMessage.error('文件接收失败')
+      ElMessage.error('Redis连接失败')
     } else if (error.response.status === 901) {
       ElMessage.error('未知的消息格式')
     } else if (error.response.status === 902) {

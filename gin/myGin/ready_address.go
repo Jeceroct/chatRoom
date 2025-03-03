@@ -17,13 +17,15 @@ type Address struct {
 	DB       string `json:"db"`
 }
 
-var closeServer_address = false
+var closeServer_address = make(chan bool, 1)
 
-func ConnectRedis(port string, end chan bool) {
+var server *http.Server
+
+func ConnectRedis(port string, page chan int) {
 	gi := gin.Default()
 	gi.Static("/", "./dist")
 
-	server := &http.Server{
+	server = &http.Server{
 		Addr:    port,
 		Handler: gi,
 	}
@@ -37,9 +39,9 @@ func ConnectRedis(port string, end chan bool) {
 	}()
 
 	for {
-		if closeServer_address {
+		if <-closeServer_address {
 			server.Close()
-			end <- true
+			page <- RoutePage.StartPage
 			fmt.Println("聊天室连接成功")
 			break
 		}
@@ -62,13 +64,23 @@ func addr_post(gi *gin.Engine) {
 			reCheck.Close()
 			go func() {
 				time.Sleep(1 * time.Second)
-				closeServer_address = true
+				closeServer_address <- true
 			}()
 		} else {
 			c.JSON(200, gin.H{
 				"code": "501",
 			})
 		}
+	})
+
+	gi.POST("/reConn", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"code": "200",
+		})
+		go func() {
+			time.Sleep(1 * time.Second)
+			closeServer_address <- true
+		}()
 	})
 
 	gi.POST("/getStatus", func(c *gin.Context) {

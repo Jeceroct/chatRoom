@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="c">
-    软件正在启动中...
+    正在连接到聊天室...
   </div>
 </template>
 

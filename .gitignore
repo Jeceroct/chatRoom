@@ -24,7 +24,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 gin/data.json
-gin/聊天室安装器编译脚本.iss
 .gitignore
 gin/chatRoom.conf.json
 gin/roomConfig.json

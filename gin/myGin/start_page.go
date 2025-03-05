@@ -11,7 +11,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 	"syscall"
 	"time"
 
@@ -28,7 +27,7 @@ const (
 )
 
 var (
-	iconMutex    sync.Mutex
+	debug        = false
 	flashSignal  = make(chan bool, 1) // 闪烁控制信号
 	stopSignal   = true               // 停止闪烁信号
 	originalIcon []byte
@@ -88,7 +87,6 @@ var hWnd win.HWND
 var hIcon win.HANDLE
 
 func StartView(addr string) {
-	debug := true
 	w := webview.New(debug)
 
 	hwnd := w.Window()

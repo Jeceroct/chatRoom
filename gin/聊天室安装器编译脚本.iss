@@ -2,8 +2,8 @@
 ;由 Inno Setup 脚本向导 生成的脚本,有关创建 INNO SETUP 脚本文件的详细信息，请参阅文档！!
 
 #define MyAppName "望子成龙小学聊天室"
-#define OutputName "chatRoom-v0.2.3-preview"
-#define MyAppVersion "0.2.3"
+#define OutputName "chatRoom-v0.2.4-preview"
+#define MyAppVersion "0.2.4"
 #define MyAppPublisher "HRX"
 #define MyAppURL "https://gitee.com/Hu_BanXian/chatroom"
 #define MyAppExeName "chatroom.exe"

@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	debug        = false
+	debug        = true
 	flashSignal  = make(chan bool, 1) // 闪烁控制信号
 	stopSignal   = true               // 停止闪烁信号
 	originalIcon []byte

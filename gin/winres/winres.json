@@ -14,7 +14,7 @@
       "0409": {
         "identity": {
           "name": "hrx.chatRoom",
-          "version": "0.2.3"
+          "version": "0.2.4"
         },
         "description": "望子成龙小学聊天室",
         "minimum-os": "win10",
@@ -42,15 +42,15 @@
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "0.2.3",
-          "product_version": "0.2.3"
+          "file_version": "0.2.4",
+          "product_version": "0.2.4"
         },
         "info": {
           "0409": {
             "Comments": "",
             "CompanyName": "",
             "FileDescription": "望子成龙小学聊天室",
-            "FileVersion": "0.2.3",
+            "FileVersion": "0.2.4",
             "InternalName": "",
             "LegalCopyright": "Copyright © 2023",
             "LegalTrademarks": "",

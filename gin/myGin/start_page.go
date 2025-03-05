@@ -11,7 +11,9 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/energye/systray"
 	"github.com/gin-gonic/gin"
@@ -25,9 +27,17 @@ const (
 	ICON_BIG   = 1 // 对应 Windows SDK 的 ICON_BIG
 )
 
+var (
+	iconMutex    sync.Mutex
+	flashSignal  = make(chan bool, 1) // 闪烁控制信号
+	stopSignal   = true               // 停止闪烁信号
+	originalIcon []byte
+	alertIcon    []byte
+)
+
 var closeServer_start = make(chan bool, 1)
 
-func Start(port string, page chan int) *gin.Engine {
+func Start(port string) *gin.Engine {
 
 	gi := gin.Default()
 	staticAbsoluteAddr, _ := filepath.Abs(path.Join("./dist"))
@@ -56,20 +66,20 @@ func Start(port string, page chan int) *gin.Engine {
 	var reSend redis.Conn
 	var reGet redis.Conn
 	// 连接至远程数据库
-	reSend = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
-	reGet = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+	reSend = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+	reGet = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 	if reSend == nil || reGet == nil {
 		fmt.Println("连接远程数据库失败")
 		closeServer_start <- true
-		page <- RoutePage.ReadyAddress
+		Page <- RoutePage.ADDRESS_PAGE
 		return nil
 	}
 
 	// 监听远程数据库消息列表
 	channel := make(chan postType.PostRequest, config.NumOfConcurrentMsg())
-	myRedis.StartListen(reGet, "chat", channel)
+	StartListen(reGet, "chat", channel, closeServer_start)
 
-	Post(gi, reSend, channel)
+	Post(gi, reSend, channel, closeServer_start)
 
 	return gi
 }
@@ -134,7 +144,17 @@ func StartView(addr string) {
 			// 阻止默认关闭行为
 			case win.WM_CLOSE:
 				win.ShowWindow(hWnd, win.SW_HIDE)
+				fmt.Println("窗口已隐藏")
 				return 0
+			// 处理窗口激活消息
+			case win.WM_ACTIVATE:
+				if wParam == win.WA_ACTIVE || wParam == win.WA_CLICKACTIVE {
+					stopSignal = true
+					notifySignal = false
+				} else {
+					stopSignal = false
+					notifySignal = true
+				}
 			}
 			return win.CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam)
 		})
@@ -154,13 +174,16 @@ func StartView(addr string) {
 // 托盘图标
 func onReady() {
 	iconPath, _ := filepath.Abs("./dist/favicon_256.ico")
-	iconData, _ := os.ReadFile(iconPath)
-	systray.SetIcon(iconData)
+	originalIcon, _ = os.ReadFile(iconPath)
+	alertIconPath, _ := filepath.Abs("./dist/favicon_alert.ico")
+	alertIcon, _ = os.ReadFile(alertIconPath)
+	systray.SetIcon(originalIcon)
 	systray.SetTitle("望子成龙小学")
 	systray.SetTooltip("望子成龙小学")
 	systray.SetOnClick(func(menu systray.IMenu) {
 		// 点击托盘图标时执行的操作
 		win.ShowWindow(hWnd, win.SW_SHOW)
+		win.SetForegroundWindow(hWnd)
 	})
 	mQuit := systray.AddMenuItem("退出", "退出程序")
 	mQuit.Click(func() {
@@ -168,6 +191,13 @@ func onReady() {
 		systray.Quit()
 		os.Exit(0)
 	})
+
+	// 启动消息监听
+	go func() {
+		for range flashSignal {
+			go startFlash()
+		}
+	}()
 }
 
 func onExit() {
@@ -176,4 +206,16 @@ func onExit() {
 	}
 	// 清理托盘图标
 	systray.Quit()
+}
+
+func startFlash() {
+	for {
+		if stopSignal {
+			return
+		}
+		systray.SetIcon(alertIcon)
+		time.Sleep(500 * time.Millisecond)
+		systray.SetIcon(originalIcon)
+		time.Sleep(500 * time.Millisecond)
+	}
 }

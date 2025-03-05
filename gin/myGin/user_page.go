@@ -23,7 +23,7 @@ type User struct {
 
 var closeServer_user = make(chan bool, 1)
 
-func BeforeStart(port string, page chan int) {
+func BeforeStart(port string) {
 	gi := gin.Default()
 	gi.Static("/", "./dist")
 
@@ -43,7 +43,7 @@ func BeforeStart(port string, page chan int) {
 	for {
 		if <-closeServer_user {
 			server.Close()
-			page <- RoutePage.StartPage
+			Page <- RoutePage.ROOM_PAGE
 			fmt.Println("聊天室连接成功")
 			break
 		}
@@ -57,7 +57,7 @@ func user_post(gi *gin.Engine) {
 		var user2 User
 		c.BindJSON(&user1)
 		fmt.Println("登录请求: ", user1.Id, user1.Password)
-		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 		context, err := reCheck.Do("GET", user1.Id)
 		reCheck.Close()
 		if err != nil {
@@ -97,7 +97,7 @@ func user_post(gi *gin.Engine) {
 		var userP User
 		c.BindJSON(&userP)
 		fmt.Println("注册请求: ", userP.Id, userP.Password)
-		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+		reCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 		ok, _ := redis.Bool(reCheck.Do("EXISTS", userP.Id))
 		reCheck.Close()
 		if ok {
@@ -110,7 +110,7 @@ func user_post(gi *gin.Engine) {
 			userP.Title = "新用户"
 		}
 		con, _ := json.Marshal(userP)
-		reCheck = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+		reCheck = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 		_, err1 := reCheck.Do("SET", userP.Id, con)
 		_, err2 := reCheck.Do("SADD", "userList", userP.Id)
 		reCheck.Close()
@@ -128,7 +128,7 @@ func user_post(gi *gin.Engine) {
 
 	gi.POST("/checkIdUsed", func(c *gin.Context) {
 		var user User
-		reIdCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
+		reIdCheck := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 		c.BindJSON(&user)
 		fmt.Println("检查请求: ", user.Id)
 		ok, err := redis.Bool(reIdCheck.Do("EXISTS", user.Id))

@@ -12,8 +12,6 @@ import (
 
 var openAddress string
 
-var page = make(chan int, 1)
-
 func main() {
 	registerAppID()
 	openAddress = "http://localhost" + config.GinPort() + "/"
@@ -24,26 +22,24 @@ func main() {
 		// 检查用户信息
 		checkUserInfo()
 		// 启动本地服务
-		page <- myGin.RoutePage.StartPage
-		myGin.Route(page)
+		myGin.Page <- myGin.RoutePage.ROOM_PAGE
+		myGin.Route()
 	}()
 
 	myGin.StartView(openAddress)
 }
 
 func checkRoomAddr() {
-	if config.RedisAddr() == "" || config.RedisPassword() == "" || config.RedisDB() == "" {
+	if config.RedisAddr() == "" || config.RedisDB() == "" {
 		fmt.Println("聊天室地址未设置")
-		page <- myGin.RoutePage.ReadyAddress
-		return
+		myGin.Page <- myGin.RoutePage.ADDRESS_PAGE
 	}
 }
 
 func checkUserInfo() {
 	if myUser.GetInfo().Id == "" {
 		fmt.Println("用户信息未设置")
-		page <- myGin.RoutePage.ReadyUser
-		return
+		myGin.Page <- myGin.RoutePage.USER_PAGE
 	}
 }
 

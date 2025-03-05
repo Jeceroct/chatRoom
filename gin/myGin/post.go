@@ -20,8 +20,9 @@ import (
 
 // 设置通知间隔时间变量
 var notifyPeriod = true
+var notifySignal = false
 
-func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
+func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, closeServer_start chan bool) {
 
 	// 接收消息内容并发往redis
 	gi.POST("/send", func(c *gin.Context) {
@@ -50,12 +51,10 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 			c.JSON(501, gin.H{
 				"message": "消息发送失败,Redis连接失败",
 			})
-			for {
-				re = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
-				if re != nil {
-					break
-				}
-				time.Sleep(5 * time.Second)
+			re = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+			if re == nil {
+				closeServer_start <- true
+				Page <- RoutePage.ADDRESS_PAGE
 			}
 			return
 		}
@@ -127,7 +126,7 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 			})
 			return
 		}
-		reGet := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
+		reGet := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1, 3)
 		path := postType.HandleFile(msg, c, reGet)
 		reGet.Close()
 		c.JSON(200, path)
@@ -142,9 +141,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest) {
 
 func uploadFile(file postType.FileType) (string, error) {
 	// 先检查redis中是否已经有同名文件
-	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
+	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1, 3)
 	if reRead == nil {
-
 		return "", fmt.Errorf("redis连接失败")
 	}
 	for i := 0; ; i++ {
@@ -165,14 +163,21 @@ func uploadFile(file postType.FileType) (string, error) {
 		fmt.Println("解码Base64时错误：", err)
 		return "", err
 	}
-	reSend := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1)
+	reSend := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1, 3)
 	_, err1 := reSend.Do("SET", file.Title, data)
 	reSend.Close()
 	return file.Title, err1
 }
 
 func notify(res []postType.PostRequest) {
-	if notifyPeriod {
+	// 发送闪烁信号
+	select {
+	case flashSignal <- true:
+	default:
+	}
+
+	if notifyPeriod && notifySignal {
+		notifyPeriod = false
 		notification := toast.Notification{
 			AppID:   "hrx.chatRoom",
 			Title:   toUTF8(res[0].From.Name),
@@ -182,7 +187,7 @@ func notify(res []postType.PostRequest) {
 			panic(err)
 		}
 		go func() {
-			time.Sleep(5 * time.Second)
+			time.Sleep(3 * time.Second)
 			notifyPeriod = true
 		}()
 	}

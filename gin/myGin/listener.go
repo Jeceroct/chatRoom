@@ -1,17 +1,17 @@
-package myRedis
+package myGin
 
 import (
 	"chatroom/config"
+	"chatroom/myRedis"
 	"chatroom/postType"
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
 
-func listener(conn redis.Conn, key string, channel chan postType.PostRequest) {
+func listener(conn redis.Conn, key string, channel chan postType.PostRequest, closeServer_start chan bool) {
 	// 上次检查时列表的长度
 	var lastLength int64 = config.ListenerLastLen()
 
@@ -20,12 +20,10 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest) {
 		if err != nil {
 			fmt.Println("获取列表长度失败，redis连接失效：", err)
 			// channel <- postType.ParseError(postType.ErrorMsg("902", "Redis连接失效"))
-			for {
-				conn = Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
-				if conn != nil {
-					break
-				}
-				time.Sleep(5 * time.Second)
+			conn = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+			if conn == nil {
+				closeServer_start <- true
+				Page <- RoutePage.ADDRESS_PAGE
 			}
 			continue
 		}
@@ -39,12 +37,10 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest) {
 			if err != nil {
 				fmt.Println("获取新增元素失败，redis连接失效：", err)
 				// channel <- postType.ParseError(postType.ErrorMsg("902", "Redis连接失效"))
-				for {
-					conn = Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0)
-					if conn != nil {
-						break
-					}
-					time.Sleep(5 * time.Second)
+				conn = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+				if conn == nil {
+					closeServer_start <- true
+					Page <- RoutePage.ADDRESS_PAGE
 				}
 				continue
 			}
@@ -72,7 +68,7 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest) {
 	}
 }
 
-func StartListen(conn redis.Conn, key string, channel chan postType.PostRequest) {
+func StartListen(conn redis.Conn, key string, channel chan postType.PostRequest, closeServer_start chan bool) {
 	fmt.Println("开始监听[", key, "]...")
-	go listener(conn, key, channel)
+	go listener(conn, key, channel, closeServer_start)
 }

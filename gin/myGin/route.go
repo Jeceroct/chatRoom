@@ -5,39 +5,43 @@ import (
 	"fmt"
 )
 
+var Page = make(chan int, 5)
+
 type routePage struct {
-	StopProcess  int
-	StartPage    int
-	ReadyAddress int
-	ReadyUser    int
+	STOP_PROCESS int
+	ROOM_PAGE    int
+	ADDRESS_PAGE int
+	USER_PAGE    int
 }
 
 var RoutePage = &routePage{
-	StopProcess:  0,
-	StartPage:    1,
-	ReadyAddress: 2,
-	ReadyUser:    3,
+	STOP_PROCESS: 0,
+	ROOM_PAGE:    1,
+	ADDRESS_PAGE: 2,
+	USER_PAGE:    3,
 }
 
-func Route(page chan int) {
-	t1, t2 := 0, 0
+func Route() {
+	t1, t2 := -1, -1
 	for {
 		t1 = t2
-		t2 = <-page
+		t2 = <-Page
 		if t1 == t2 {
 			continue
 		}
+		fmt.Println("收到页面切换请求: ", t2)
 		switch t2 {
-		case RoutePage.StartPage:
+		case RoutePage.ROOM_PAGE:
 			fmt.Println("进入聊天页面")
-			Start(config.GinPort(), page)
-		case RoutePage.ReadyAddress:
+			Start(config.GinPort())
+		case RoutePage.ADDRESS_PAGE:
 			fmt.Println("进入连接页面")
-			ConnectRedis(config.GinPort(), page)
-		case RoutePage.ReadyUser:
+			ConnectRedis(config.GinPort())
+		case RoutePage.USER_PAGE:
 			fmt.Println("进入用户设置页面")
-			BeforeStart(config.GinPort(), page)
-		case RoutePage.StopProcess:
+			BeforeStart(config.GinPort())
+		case RoutePage.STOP_PROCESS:
+			fmt.Println("退出程序")
 			return
 		}
 	}

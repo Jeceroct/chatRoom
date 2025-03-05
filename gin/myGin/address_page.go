@@ -21,7 +21,7 @@ var closeServer_address = make(chan bool, 1)
 
 var server *http.Server
 
-func ConnectRedis(port string, page chan int) {
+func ConnectRedis(port string) {
 	gi := gin.Default()
 	gi.Static("/", "./dist")
 
@@ -41,7 +41,7 @@ func ConnectRedis(port string, page chan int) {
 	for {
 		if <-closeServer_address {
 			server.Close()
-			page <- RoutePage.StartPage
+			Page <- RoutePage.ROOM_PAGE
 			fmt.Println("聊天室连接成功")
 			break
 		}
@@ -53,7 +53,7 @@ func addr_post(gi *gin.Engine) {
 		var addr Address
 		c.BindJSON(&addr)
 		fmt.Println("连接请求: ", addr.Addr, addr.Password, addr.DB)
-		reCheck := myRedis.Connect(addr.Addr, addr.Password, addr.DB, 0)
+		reCheck := myRedis.Connect(addr.Addr, addr.Password, addr.DB, 0, 1)
 		if reCheck != nil {
 			c.JSON(200, gin.H{
 				"code": "200",

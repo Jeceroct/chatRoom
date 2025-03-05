@@ -20,7 +20,7 @@
         <input v-model="titleValue" class="input" placeholder="给自己一个头衔吧，不过有没有无所谓了" />
       </div>
       <button id="loginBtn" class="loginBtn" @click="login" type="reset">去登录</button>
-      <button id="submitBtn" class="submitBtn" type="submit">注册</button>
+      <button ref="submitBtn" id="submitBtn" class="submitBtn" type="submit">注册</button>
     </el-form>
   </div>
 </template>
@@ -30,7 +30,6 @@ import routeMask from '../components/routeMask.vue'
 import { onMounted, ref } from 'vue'
 import request from '../axios'
 import { useRouter } from 'vue-router'
-import { getStatus } from '@/utils/getStatus';
 import { ElMessage } from 'element-plus';
 const router = useRouter();
 // const route = useRoute();
@@ -41,6 +40,8 @@ const passwordValue = ref('')
 const nameValue = ref('')
 const titleValue = ref('')
 const isIdUsed = ref(false)
+
+const submitBtn = ref(null)
 
 // 防抖函数
 const debounce = (fn, delay) => {
@@ -102,6 +103,9 @@ const send = () => {
     return
   }
 
+  submitBtn.value.setAttribute('disabled', true)
+  submitBtn.value.innerHTML = '注册中...'
+
   const req = new FormData()
 
   req.append('id', idValue.value)
@@ -120,11 +124,13 @@ const send = () => {
         router.push('/login')
       }, 200)
     }
+  }).finally(() => {
+    submitBtn.value.removeAttribute('disabled')
+    submitBtn.value.innerHTML = '注册'
   })
 }
 
 onMounted(() => {
-  getStatus()
   const inputs = document.querySelectorAll('.input')
   inputs.forEach((input) => {
     input.addEventListener('input', () => {
@@ -227,6 +233,12 @@ button {
   &.loginBtn {
     margin-top: 3em;
     background-color: rgba(214, 255, 224, 0.496);
+  }
+
+  &[disabled] {
+    background-color: rgba(179, 179, 179, 0.496) !important;
+    color: #454545 !important;
+    cursor: not-allowed !important;
   }
 }
 </style>

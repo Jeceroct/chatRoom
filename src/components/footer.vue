@@ -1,6 +1,9 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="emojiBoxMask"></div>
+  <!-- <div class="uploading">
+    正在上传文件：
+  </div> -->
   <EmojiPicker :native="true" :theme="'dark'" :display-recent="true"
     :static-texts="{ placeholder: '搜索表情', skinTone: '更换肤色' }" :group-names="emojiGroup"
     @select="insertEmoji" class="emojiBox" />
@@ -107,7 +110,17 @@ const more = async () => {
           user.value,
           quoteValue
         )
-        request.post('/send', msg.getResult())
+        const elMsg = ElMessage({
+          message: `正在上传文件: ${file.name}`,
+          type: 'info',
+          duration: 0
+        })
+        request.post('/send', msg.getResult()).then(() => {
+          elMsg.close()
+        }).catch(() => {
+          elMsg.close()
+          ElMessage.error('文件上传失败')
+        })
       }
     } else {
       // msg.Type = 'image'
@@ -125,7 +138,17 @@ const more = async () => {
           user.value,
           quoteValue
         )
-        request.post('/send', msg.getResult())
+        const elMsg = ElMessage({
+          message: `正在上传图片`,
+          type: 'info',
+          duration: 0
+        })
+        request.post('/send', msg.getResult()).then(() => {
+          elMsg.close()
+        }).catch(() => {
+          elMsg.close()
+          ElMessage.error('图片上传失败')
+        })
       }
     }
   })
@@ -190,6 +213,34 @@ const send = () => {
     bottom: 5em;
   }
 }
+
+/* .uploading {
+  position: absolute;
+  bottom: 3em;
+  top: 6em;
+  left: 10%;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  border-radius: 1.5em;
+
+  width: 80%;
+  height: 2.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #1f1f1f;
+  color: #cecece;
+
+  opacity: 0;
+  visibility: hidden;
+
+  &.show {
+    opacity: 1;
+    top: 6em;
+    visibility: visible;
+  }
+} */
 
 .container {
   display: flex;

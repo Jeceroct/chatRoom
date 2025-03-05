@@ -13,15 +13,13 @@
         <span>此项不能为空</span>
       </div>
       <button class="loginBtn" @click="signup" type="reset">还没有此聊天室的账户？去注册</button>
-      <button class="submitBtn" type="submit">进入</button>
+      <button ref="submitBtn" class="submitBtn" type="submit">进入</button>
     </el-form>
   </div>
 </template>
 
 <script setup>
 import routeMask from '../components/routeMask.vue'
-
-import { getStatus } from '@/utils/getStatus'
 
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus';
@@ -31,6 +29,8 @@ const router = useRouter();
 
 const idValue = ref('')
 const passwordValue = ref('')
+
+const submitBtn = ref(null)
 
 const signup = () => {
   idValue.value = ''
@@ -67,6 +67,9 @@ const send = () => {
     return
   }
 
+  submitBtn.value.setAttribute('disabled', true)
+  submitBtn.value.innerHTML = '登录中...'
+
   const req = new FormData()
 
   req.append('id', idValue.value)
@@ -81,11 +84,13 @@ const send = () => {
     } else {
       ElMessage.warning('用户Id或密码错误')
     }
+  }).finally(() => {
+    submitBtn.value.removeAttribute('disabled')
+    submitBtn.value.innerHTML = '进入'
   })
 }
 
 onMounted(() => {
-  getStatus()
   const inputs = document.querySelectorAll('.input')
   inputs.forEach((input) => {
     input.addEventListener('input', () => {
@@ -165,6 +170,12 @@ button {
   &.loginBtn {
     margin-top: 3em;
     background-color: rgba(214, 255, 224, 0.496);
+  }
+
+  &[disabled] {
+    background-color: rgba(179, 179, 179, 0.496) !important;
+    color: #454545 !important;
+    cursor: not-allowed !important;
   }
 }
 </style>

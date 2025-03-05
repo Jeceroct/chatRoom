@@ -25,7 +25,7 @@ const roomName = ref('望子成龙小学')
   top: 0;
   left: 0;
   width: calc(100% - 20px);
-  z-index: 9999;
+  z-index: 1000;
   height: 4em;
 
   h1 {

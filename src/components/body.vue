@@ -32,6 +32,8 @@ const openFilePeriod = ref(true)
 
 const newMsgNum = ref(0)
 
+const downloadingList = new Map([])
+
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 // const msgsData = ref("")
 
@@ -116,9 +118,25 @@ const addMsgHTML = async (msg, msgBoxEle) => {
           From: msg.from
         }
         i.addEventListener('click', () => {
+          if (downloadingList.has(msgi.title)) {
+            console.log(`${msgi.title}：文件正在下载!`)
+            return
+          }
           if (openFilePeriod.value) {
-            ElMessage.info('正在下载文件')
-            request.post('/download', msgi)
+            downloadingList.set(msgi.title)
+            const elMsg = ElMessage({
+              message: `正在下载文件：${msgi.title}`,
+              type: 'info',
+              duration: 0
+            })
+            request.post('/download', msgi).then(() => {
+              elMsg.close()
+            }).catch(() => {
+              elMsg.close()
+              ElMessage.error(`${msgi.title}：下载失败`)
+            }).finally(()=> {
+              downloadingList.delete(msgi.title)
+            })
             openFilePeriod.value = false
           } else {
             ElMessage.info('文件正在下载，请勿多次点击')

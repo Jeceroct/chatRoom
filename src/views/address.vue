@@ -12,15 +12,13 @@
         <input v-model="passwordValue" class="input" placeholder="请输入聊天室的密码" />
         <span>警告：此聊天室没有设置密码</span>
       </div>
-      <button class="submitBtn" type="submit">确定</button>
+      <button ref="submitBtn" class="submitBtn" type="submit">确定</button>
     </el-form>
   </div>
 </template>
 
 <script setup>
 import routeMask from '../components/routeMask.vue'
-
-import { getStatus } from '@/utils/getStatus'
 
 import { onMounted, ref } from 'vue'
 import request from '../axios'
@@ -31,7 +29,10 @@ import { ElMessage } from 'element-plus';
 const addressValue = ref('')
 const passwordValue = ref('')
 
+const submitBtn = ref(null)
+
 const send = () => {
+  console.log('send')
   addressValue.value = addressValue.value.trim()
   passwordValue.value = passwordValue.value.trim()
 
@@ -56,6 +57,9 @@ const send = () => {
     return
   }
 
+  submitBtn.value.setAttribute('disabled', true)
+  submitBtn.value.innerHTML = '连接中...'
+
   const req = new FormData()
 
   req.append('address', addressValue.value)
@@ -71,11 +75,13 @@ const send = () => {
     } else {
       ElMessage.warning('聊天室地址或密码错误')
     }
+  }).finally(() => {
+    submitBtn.value.removeAttribute('disabled')
+    submitBtn.value.innerHTML = '确定'
   })
 }
 
 onMounted(() => {
-  getStatus()
   const inputs = document.querySelectorAll('.input')
   inputs.forEach((input) => {
     input.addEventListener('input', () => {
@@ -153,9 +159,10 @@ button {
   color: white;
   cursor: pointer;
 
-  &.loginBtn {
-    margin-top: 3em;
-    background-color: rgba(214, 255, 224, 0.496);
+  &[disabled] {
+    background-color: rgba(179, 179, 179, 0.496) !important;
+    color: #454545 !important;
+    cursor: not-allowed !important;
   }
 }
 </style>

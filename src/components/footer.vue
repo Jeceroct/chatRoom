@@ -1,12 +1,12 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="emojiBoxMask"></div>
-  <!-- <div class="uploading">
-    正在上传文件：
-  </div> -->
+  <div id="dropUpload">
+    <h2>上传文件</h2>
+  </div>
   <EmojiPicker :native="true" :theme="'dark'" :display-recent="true"
-    :static-texts="{ placeholder: '搜索表情', skinTone: '更换肤色' }" :group-names="emojiGroup"
-    @select="insertEmoji" class="emojiBox" />
+    :static-texts="{ placeholder: '搜索表情', skinTone: '更换肤色' }" :group-names="emojiGroup" @select="insertEmoji"
+    class="emojiBox" />
   <div class="container">
     <form @submit.prevent="send">
       <div class="input">
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/axios'
 import RequestType from '@/class/RequestType'
@@ -48,13 +48,6 @@ const emojiGroup = {
   "flags": "旗帜"
 }
 
-// const msg = {
-//   Type: 'text',
-//   Context: inputValue.value,
-//   Time: new Date().toLocaleTimeString(),
-//   From: 'user'
-// }
-
 const msg = new RequestType(
   RequestType.Type().text,
   '',
@@ -67,6 +60,16 @@ const user = computed(() => {
   const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
   return userInfo
 })
+
+// 防抖函数
+let timeoutId;
+const debounce = (fn, delay) => {
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
+};
+
 
 const openEmoji = () => {
   const emojiBox = document.querySelector('.emojiBox')
@@ -88,70 +91,106 @@ const insertEmoji = (emoji) => {
   inputValue.value = inputEle.value.substring(0, start) + emoji.i + inputEle.value.substring(end)
 }
 
+const initDropUpload = () => {
+  const dropUploadEle = document.querySelector('#dropUpload')
+  const bodyContainer = document.querySelector('#bodyContainer')
+  bodyContainer.addEventListener('dragenter', handlerEvents)
+  bodyContainer.addEventListener('dragleave', handlerEvents)
+  bodyContainer.addEventListener('dragover', handlerEvents)
+  bodyContainer.addEventListener('drop', handlerEvents)
+
+  function handlerEvents(e) {
+    e.stopPropagation()
+    e.preventDefault()
+    switch (e.type) {
+      case 'dragenter':
+        dropUploadEle.classList.add('show')
+        break
+
+      case 'dragover':
+        dropUploadEle.classList.add('show')
+        break
+
+      case 'dragleave':
+        debounce(() => {
+          console.log('用户取消上传')
+          dropUploadEle.classList.remove('show')
+        }, 250).call()
+        break
+
+      // 在拖拽区域内松开鼠标（拖放完成/放入文件）
+      case 'drop':
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          uploadFile(e.dataTransfer.files[i])
+        }
+        dropUploadEle.classList.remove('show')
+        break
+      default:
+        break
+    }
+  }
+}
+
 const more = async () => {
   let fileHandles = await window.showOpenFilePicker({
     multiple: true,
   })
   fileHandles.forEach(async (fileHandle) => {
     const file = await fileHandle.getFile()
-    // 检测是否是图片
-    if (file.type.indexOf('image') === -1) {
-      // msg.requestType.type = RequestType.Type().file
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = async () => {
-        // msg.requestType.context = `{"Title": "${file.name}", "Context": "${reader.result}"}`
-        // msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-        // msg.From = user.value
-        msg.setRequestType(
-          RequestType.Type().file,
-          RequestType.FileContext(file.name, reader.result),
-          `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-          user.value,
-          quoteValue
-        )
-        const elMsg = ElMessage({
-          message: `正在上传文件: ${file.name}`,
-          type: 'info',
-          duration: 0
-        })
-        request.post('/send', msg.getResult()).then(() => {
-          elMsg.close()
-        }).catch(() => {
-          elMsg.close()
-          ElMessage.error('文件上传失败')
-        })
-      }
-    } else {
-      // msg.Type = 'image'
-      // 获取文件base64内容
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = async () => {
-        // msg.Context = reader.result
-        // msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-        // msg.From = user.value
-        msg.setRequestType(
-          RequestType.Type().image,
-          reader.result,
-          `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-          user.value,
-          quoteValue
-        )
-        const elMsg = ElMessage({
-          message: `正在上传图片`,
-          type: 'info',
-          duration: 0
-        })
-        request.post('/send', msg.getResult()).then(() => {
-          elMsg.close()
-        }).catch(() => {
-          elMsg.close()
-          ElMessage.error('图片上传失败')
-        })
-      }
-    }
+    uploadFile(file)
   })
+}
+
+const uploadFile = (file) => {
+  // 检测是否是图片
+  if (file.type.indexOf('image') === -1) {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = async () => {
+      msg.setRequestType(
+        RequestType.Type().file,
+        RequestType.FileContext(file.name, reader.result),
+        `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        user.value,
+        quoteValue
+      )
+      const elMsg = ElMessage({
+        message: `正在上传文件: ${file.name}`,
+        type: 'info',
+        duration: 0
+      })
+      request.post('/send', msg.getResult()).then(() => {
+        elMsg.close()
+      }).catch(() => {
+        elMsg.close()
+        ElMessage.error('文件上传失败')
+      })
+    }
+  } else {
+    // 获取文件base64内容
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = async () => {
+      msg.setRequestType(
+        RequestType.Type().image,
+        reader.result,
+        `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        user.value,
+        quoteValue
+      )
+      const elMsg = ElMessage({
+        message: `正在上传图片`,
+        type: 'info',
+        duration: 0
+      })
+      request.post('/send', msg.getResult()).then(() => {
+        elMsg.close()
+      }).catch(() => {
+        elMsg.close()
+        ElMessage.error('图片上传失败')
+      })
+    }
+  }
 }
 
 const send = () => {
@@ -159,10 +198,6 @@ const send = () => {
     ElMessage.info('请输入内容')
     return
   }
-  // msg.Type = 'text'
-  // msg.Context = inputValue.value
-  // msg.Time = `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-  // msg.From = user.value
   msg.setRequestType(
     RequestType.Type().text,
     inputValue.value,
@@ -179,6 +214,10 @@ const send = () => {
     emojiBoxMask.classList.remove('show')
   })
 }
+
+onMounted(() => {
+  initDropUpload()
+})
 </script>
 
 <style scoped>
@@ -214,33 +253,29 @@ const send = () => {
   }
 }
 
-/* .uploading {
-  position: absolute;
-  bottom: 3em;
-  top: 6em;
-  left: 10%;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  border-radius: 1.5em;
-
-  width: 80%;
-  height: 2.5em;
+#dropUpload {
+  position: fixed;
+  top: 5em;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 10em);
+  background-color: #499dec46;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  color: #fff;
+  z-index: 999;
 
-  background-color: #1f1f1f;
-  color: #cecece;
-
+  transition: all 0.2s ease-in-out;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 
   &.show {
-    opacity: 1;
-    top: 6em;
     visibility: visible;
+    opacity: 1;
   }
-} */
+}
 
 .container {
   display: flex;

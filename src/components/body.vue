@@ -1,15 +1,13 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div id="bodyContainer">
-    <div class="msgBox">
-
-    </div>
+    <div class="msgBox"></div>
   </div>
-  <div class="newMsg">
+  <div class="newMsg" ref="newMsgRef">
     您有新消息
     <span class="num">{{ newMsgNum }}</span>
   </div>
-  <div class="scrollToBtm">
+  <div class="scrollToBtm" ref="scrollToBtmRef">
     <el-icon size="1.8em">
       <DArrowRight />
     </el-icon>
@@ -19,6 +17,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import errorImg from '@/assets/error.jpg'
 import request from '@/axios'
 
 // var user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
@@ -26,6 +25,9 @@ const user = computed(() => {
   const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
   return userInfo
 })
+
+const newMsgRef = ref(null)
+const scrollToBtmRef = ref(null)
 
 const openImgPeriod = ref(true)
 const openFilePeriod = ref(true)
@@ -35,7 +37,15 @@ const newMsgNum = ref(0)
 const downloadingList = new Map([])
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-// const msgsData = ref("")
+
+// 防抖函数
+let timeoutId;
+const debounce = (fn, delay) => {
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
+};
 
 const addMsgHTML = async (msg, msgBoxEle) => {
   var newHtml = ""
@@ -70,7 +80,7 @@ const addMsgHTML = async (msg, msgBoxEle) => {
                 <div class="text">`+ msg.context + `</div>
                 </div>
                 </div>`
-                // <div class="level">Lv${msg.from.level}</div>
+      // <div class="level">Lv${msg.from.level}</div>
     } else {
       newHtml = `
             <div class="msg first" userId="${msg.from.id}">
@@ -83,7 +93,7 @@ const addMsgHTML = async (msg, msgBoxEle) => {
                   <div class="time">${msg.time}</div>
                   </div>
                   </div>`
-                  // <div class="level">Lv${msg.from.level}</div>
+      // <div class="level">Lv${msg.from.level}</div>
     }
   }
   if (msg.type == 'image') {
@@ -91,10 +101,16 @@ const addMsgHTML = async (msg, msgBoxEle) => {
     msgBoxEle.insertAdjacentHTML('beforeend', newHtml);
     const imgEle = msgBoxEle.lastElementChild.querySelectorAll('img')
     await imgEle.forEach(i => {
+      i.onerror = () => {
+        i.src = errorImg
+      }
       i.style.cursor = 'pointer'
       i.addEventListener('click', () => {
         if (openImgPeriod.value) {
-          request.post('/openImg', msg)
+          // 访问后端使用系统图片查看器打开
+          // request.post('/openImg', msg)
+          // 使用新标签页打开
+          window.open(process.env.VUE_APP_API_ADDR + msg.context)
           openImgPeriod.value = false
         } else {
           ElMessage.info('图片已打开，请勿多次点击')
@@ -134,7 +150,7 @@ const addMsgHTML = async (msg, msgBoxEle) => {
             }).catch(() => {
               elMsg.close()
               ElMessage.error(`${msgi.title}：下载失败`)
-            }).finally(()=> {
+            }).finally(() => {
               downloadingList.delete(msgi.title)
             })
             openFilePeriod.value = false
@@ -150,6 +166,15 @@ const addMsgHTML = async (msg, msgBoxEle) => {
       msgBoxEle.insertAdjacentHTML('beforeend', newHtml);
     }
   // msgsData.value += newHtml
+}
+
+const initBtnPos = () => {
+  const container = document.querySelector('#bodyContainer')
+  const scrollToBtmEle = document.querySelector('.scrollToBtm')
+  const sendBtnEle = document.querySelector('#sendBtn')
+  scrollToBtmEle.style.left = sendBtnEle.offsetLeft + 'px'
+  const newMsgElement = document.querySelector('.newMsg')
+  newMsgElement.style.left = container.clientWidth / 2 - newMsgElement.clientWidth / 2 + 'px'
 }
 
 onMounted(async () => {
@@ -171,17 +196,14 @@ onMounted(async () => {
     }
   })
 
-  // 定义滚动到底部按钮的位置
+  // 定义滚动到底部按钮和新消息按钮的位置
+  initBtnPos()
+  window.addEventListener('resize', debounce(initBtnPos, 250));
+
   const scrollToBtmEle = document.querySelector('.scrollToBtm')
-  const sendBtnEle = document.querySelector('#sendBtn')
-  scrollToBtmEle.style.left = sendBtnEle.offsetLeft + 'px'
-
-  // 定义新消息按钮的位置
   const newMsgElement = document.querySelector('.newMsg')
-  newMsgElement.style.left = container.clientWidth / 2 - newMsgElement.clientWidth / 2 + 'px'
-
   // 监听container滚动事件，滚动到底部时，隐藏newMsg和scrollToBtm
-  container.addEventListener('scroll', () => {
+  container.addEventListener('scroll', debounce(() => {
     const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
     if (isScrolledToBottom) {
       newMsgElement.classList.remove('show')
@@ -190,7 +212,7 @@ onMounted(async () => {
     } else if (!newMsgElement.classList.contains('show')) {
       scrollToBtmEle.classList.add('show')
     }
-  })
+  }), 500)
 
   // 监听newMsg点击事件，滚动到底部
   newMsgElement.addEventListener('click', () => {
@@ -213,12 +235,14 @@ onMounted(async () => {
       await sleep(5000)
     } else {
       console.log(res.message)
+      // const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
+      var isScrolledToBottom
       res.message.forEach(i => {
+        isScrolledToBottom = !( newMsgRef.value.classList.contains('show') || scrollToBtmRef.value.classList.contains('show') )
         addMsgHTML(i, msgBoxEle)
       });
 
       // 判断container内部是否已经滚动到最底部
-      const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
       if (isScrolledToBottom) {
         container.scrollTop = container.scrollHeight - container.clientHeight
       } else {
@@ -284,7 +308,7 @@ onMounted(async () => {
       }
 
       &.first {
-        margin-top: 1em;
+        margin-top: 1.2em;
 
         .text {
           border-top-left-radius: 0em;
@@ -293,13 +317,16 @@ onMounted(async () => {
 
       .user {
         display: flex;
-        justify-content: start;
+        justify-content: center;
         align-items: center;
+        margin-bottom: 0.2em;
+        height: 1.2em;
 
         .name {
-          text-align: start;
+          display: flex;
+          justify-content: center;
+          align-items: center;
           font-size: 0.9em;
-          margin-bottom: 0.2em;
         }
 
         .level {
@@ -313,14 +340,16 @@ onMounted(async () => {
 
         .title {
           border-radius: 0.5em;
-          text-align: start;
           font-size: 0.7em;
-          height: 80%;
+          height: 90%;
           color: #ffffff;
           font-weight: bold;
           margin: 0 0.25em;
           padding: 0 0.3em;
           user-select: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
       }
 
@@ -358,7 +387,8 @@ onMounted(async () => {
       }
 
       img {
-        width: 60%;
+        max-width: 60%;
+        height: 100px;
         border-radius: 1em;
       }
 
@@ -366,18 +396,20 @@ onMounted(async () => {
         display: flex;
         flex-direction: column;
         justify-content: center;
+
         & span {
           font-size: x-small;
           margin: 0.4em 1.3em;
           color: #888;
         }
+
         & .fileCont {
-        margin: 0.5em;
-        margin-top: 0;
-        padding: 0.4em 0.8em;
-        background-color: #ffffff1b;
-        border-radius: 1em;
-      }
+          margin: 0.5em;
+          margin-top: 0;
+          padding: 0.4em 0.8em;
+          background-color: #ffffff1b;
+          border-radius: 1em;
+        }
       }
     }
   }

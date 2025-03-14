@@ -12,7 +12,7 @@
 // }
 // getUserInfo()
 
-import { startGetStatus } from '@/utils/getStatus'
+import { Status } from '@/utils/getStatus'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
@@ -22,7 +22,7 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 onMounted(async () => {
   for (; ;) {
     await sleep(1000)
-    startGetStatus(router)
+    Status.getInstance().getStatus(router)
   }
 })
 

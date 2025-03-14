@@ -45,12 +45,12 @@ const submitBtn = ref(null)
 
 // 防抖函数
 const debounce = (fn, delay) => {
-    let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => fn.apply(this, args), delay);
-    };
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
   };
+};
 
 const login = () => {
   idValue.value = ''

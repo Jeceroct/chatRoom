@@ -1,6 +1,8 @@
 package postType
 
 import (
+	"chatroom/config"
+	"chatroom/myRedis"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -36,7 +38,7 @@ func TypeCheck(msg PostRequest, c *gin.Context) PostRequest {
 	return msg
 }
 
-func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
+func HandleFile(msg PostRequest, c *gin.Context) string {
 	// fileMsg := ParseFileContext(msg)
 	path := "/download/" + msg.Context
 	// 如果download文件夹不存在，则创建
@@ -46,12 +48,15 @@ func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	// 如果路径下已有同名文件，则直接返回文件路径
 	if _, err := os.Stat(basePath + path); err == nil {
 		// 直接使用cmd打开文件
-		cmd := exec.Command("cmd", "/c", "start", basePath+path)
+		absPath, _ := filepath.Abs(basePath + path)
+		cmd := exec.Command("cmd", "/c", "start", absPath)
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		go cmd.Run()
 		return path
 	}
 	// 如果路径下没有同名文件，则从redis中获取文件内容并保存到本地
+	reGet := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1, 3)
+	defer reGet.Close()
 	context, err := redis.String(reGet.Do("GET", msg.Context))
 	if err != nil {
 		fmt.Println("获取文件内容时发生错误：", err)
@@ -73,7 +78,8 @@ func HandleFile(msg PostRequest, c *gin.Context, reGet redis.Conn) string {
 	if _, err := file.Write(data); err != nil {
 		fmt.Println("保存文件时发生错误：", err)
 	}
-	cmd := exec.Command("cmd", "/c", "start", basePath+path)
+	absPath, _ := filepath.Abs(basePath + path)
+	cmd := exec.Command("cmd", "/c", "start", absPath)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	go cmd.Run()
 	return path

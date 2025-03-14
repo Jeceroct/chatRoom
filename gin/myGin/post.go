@@ -126,9 +126,7 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 			})
 			return
 		}
-		reGet := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1, 3)
-		path := postType.HandleFile(msg, c, reGet)
-		reGet.Close()
+		path := postType.HandleFile(msg, c)
 		c.JSON(200, path)
 	})
 
@@ -140,6 +138,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 }
 
 func uploadFile(file postType.FileType) (string, error) {
+	// 删除file.title中的空格
+	file.Title = strings.ReplaceAll(file.Title, " ", "")
 	// 先检查redis中是否已经有同名文件
 	reRead := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 1, 3)
 	if reRead == nil {

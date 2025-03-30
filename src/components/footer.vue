@@ -28,9 +28,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+// import { ElMessage } from 'element-plus'
 import request from '@/axios'
 import RequestType from '@/class/RequestType'
+import myMessage from '@/utils/myMessage'
 
 const inputValue = ref('')
 
@@ -89,6 +90,10 @@ const insertEmoji = (emoji) => {
   const end = inputEle.selectionEnd
   if (start === undefined || end === undefined) return
   inputValue.value = inputEle.value.substring(0, start) + emoji.i + inputEle.value.substring(end)
+  const emojiBox = document.querySelector('.emojiBox')
+  const emojiBoxMask = document.querySelector('.emojiBoxMask')
+  emojiBox.classList.remove('show')
+  emojiBoxMask.classList.remove('show')
 }
 
 const initDropUpload = () => {
@@ -154,16 +159,19 @@ const uploadFile = (file) => {
         user.value,
         quoteValue
       )
-      const elMsg = ElMessage({
-        message: `正在上传文件: ${file.name}`,
-        type: 'info',
-        duration: 0
-      })
+      // const elMsg = ElMessage({
+      //   message: `正在上传文件: ${file.name}`,
+      //   type: 'info',
+      //   duration: 0
+      // })
+      const elMsg = myMessage(`正在上传文件: ${file.name}`, 'info', 0)
+      elMsg.load()
       request.post('/send', msg.getResult()).then(() => {
         elMsg.close()
       }).catch(() => {
+        // ElMessage.error('文件上传失败')
+        myMessage('文件上传失败', 'error')
         elMsg.close()
-        ElMessage.error('文件上传失败')
       })
     }
   } else {
@@ -178,16 +186,19 @@ const uploadFile = (file) => {
         user.value,
         quoteValue
       )
-      const elMsg = ElMessage({
-        message: `正在上传图片`,
-        type: 'info',
-        duration: 0
-      })
+      // const elMsg = ElMessage({
+      //   message: `正在上传图片`,
+      //   type: 'info',
+      //   duration: 0
+      // })
+      const elMsg = myMessage(`正在上传图片`, 'info', 0)
+      elMsg.load()
       request.post('/send', msg.getResult()).then(() => {
         elMsg.close()
       }).catch(() => {
         elMsg.close()
-        ElMessage.error('图片上传失败')
+        // ElMessage.error('图片上传失败')
+        myMessage('图片上传失败', 'error')
       })
     }
   }
@@ -195,7 +206,12 @@ const uploadFile = (file) => {
 
 const send = () => {
   if (inputValue.value === '') {
-    ElMessage.info('请输入内容')
+    // ElMessage({
+    //     message: `请输入消息}`,
+    //     type: 'info',
+    //     duration: 0
+    //   })
+    myMessage(`请输入消息`, 'info')
     return
   }
   msg.setRequestType(
@@ -255,10 +271,11 @@ onMounted(() => {
 
 #dropUpload {
   position: fixed;
-  top: 5em;
+  top: 0;
   left: 0;
-  width: 100%;
-  height: calc(100% - 10em);
+  width: 100vw;
+  height: 100vh;
+  /* height: calc(100% - 10em); */
   background-color: #499dec46;
   display: flex;
   justify-content: center;
@@ -283,7 +300,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  background-color: #1f1f1f;
+  background-color: var(--color-background);
   position: absolute;
   bottom: 0;
   left: 0;
@@ -318,15 +335,15 @@ onMounted(() => {
         height: 3.5em;
         width: 3.5em;
         min-width: 3.5em;
-        background-color: #74b8f7;
-        color: #1f1f1f;
+        background-color: var(--color-theme);
+        color: #fff;
       }
 
       &#moreBtn {
         height: 3em;
         width: 3em;
         min-width: 3em;
-        background-color: #2d2d2d;
+        background-color: var(--color-background-soft);
         color: #fff;
       }
     }

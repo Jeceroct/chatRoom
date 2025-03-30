@@ -1,4 +1,4 @@
-<!-- eslint-disable vue/multi-word-component-names -->
+<!-- eslint-disable no-unused-vars vue/multi-word-component-names -->
 <template>
   <div id="bodyContainer">
     <div class="msgBox"></div>
@@ -16,9 +16,10 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+// import { ElMessage } from 'element-plus'
 import errorImg from '@/assets/error.jpg'
 import request from '@/axios'
+import myMessage from '@/utils/myMessage'
 
 // var user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
 const user = computed(() => {
@@ -113,7 +114,8 @@ const addMsgHTML = async (msg, msgBoxEle) => {
           window.open(process.env.VUE_APP_API_ADDR + msg.context)
           openImgPeriod.value = false
         } else {
-          ElMessage.info('图片已打开，请勿多次点击')
+          // ElMessage.info('图片已打开，请勿多次点击')
+          myMessage('图片已打开，请勿多次点击', 'info')
         }
         setTimeout(() => {
           openImgPeriod.value = true
@@ -140,22 +142,25 @@ const addMsgHTML = async (msg, msgBoxEle) => {
           }
           if (openFilePeriod.value) {
             downloadingList.set(msgi.title)
-            const elMsg = ElMessage({
-              message: `正在下载文件：${msgi.title}`,
-              type: 'info',
-              duration: 0
-            })
+            // const elMsg = ElMessage({
+            //   message: `正在下载文件：${msgi.title}`,
+            //   type: 'info',
+            //   duration: 0
+            // })
+            const elMsg = myMessage(`正在下载文件：${msgi.title}`, 'info', 0)
             request.post('/download', msgi).then(() => {
               elMsg.close()
             }).catch(() => {
+              // ElMessage.error(`${msgi.title}：下载失败`)
+              myMessage(`${msgi.title}：下载失败`, 'error')
               elMsg.close()
-              ElMessage.error(`${msgi.title}：下载失败`)
             }).finally(() => {
               downloadingList.delete(msgi.title)
             })
             openFilePeriod.value = false
           } else {
-            ElMessage.info('文件正在下载，请勿多次点击')
+            // ElMessage.info('文件正在下载，请勿多次点击')
+            myMessage('文件正在下载，请勿多次点击', 'info')
           }
           setTimeout(() => {
             openFilePeriod.value = true
@@ -228,31 +233,31 @@ onMounted(async () => {
   })
 
   // 监听新消息
-  for (; ;) {
-    const error = ref(null)
-    const res = await request.post('/get').catch(err => error.value = err)
-    if (error.value) {
-      await sleep(5000)
-    } else {
-      console.log(res.message)
-      // const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
-      var isScrolledToBottom
-      res.message.forEach(i => {
-        isScrolledToBottom = !( newMsgRef.value.classList.contains('show') || scrollToBtmRef.value.classList.contains('show') )
-        addMsgHTML(i, msgBoxEle)
-      });
+  // for (; ;) {
+  //   const error = ref(null)
+  //   const res = await request.post('/get').catch(err => error.value = err)
+  //   if (error.value) {
+  //     await sleep(5000)
+  //   } else {
+  //     console.log(res.message)
+  //     // const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
+  //     var isScrolledToBottom
+  //     res.message.forEach(i => {
+  //       isScrolledToBottom = !( newMsgRef.value.classList.contains('show') || scrollToBtmRef.value.classList.contains('show') )
+  //       addMsgHTML(i, msgBoxEle)
+  //     });
 
-      // 判断container内部是否已经滚动到最底部
-      if (isScrolledToBottom) {
-        container.scrollTop = container.scrollHeight - container.clientHeight
-      } else {
-        const newMsg = document.querySelector('.newMsg')
-        newMsg.classList.add('show')
-        scrollToBtmEle.classList.remove('show')
-        newMsgNum.value += res.message.length
-      }
-    }
-  }
+  //     // 判断container内部是否已经滚动到最底部
+  //     if (isScrolledToBottom) {
+  //       container.scrollTop = container.scrollHeight - container.clientHeight
+  //     } else {
+  //       const newMsg = document.querySelector('.newMsg')
+  //       newMsg.classList.add('show')
+  //       scrollToBtmEle.classList.remove('show')
+  //       newMsgNum.value += res.message.length
+  //     }
+  //   }
+  // }
 })
 </script>
 
@@ -264,9 +269,9 @@ onMounted(async () => {
   align-items: start;
   position: absolute;
   width: 100%;
-  top: 5em;
+  top: 2em;
 
-  height: calc(100vh - 10em);
+  height: calc(100vh - 7em);
 
   overflow-y: scroll;
   scroll-behavior: smooth;
@@ -360,7 +365,8 @@ onMounted(async () => {
       .text {
         width: auto;
         height: auto;
-        background-color: #1f1f1f;
+        background-color: var(--color-background);
+        color: var(--color-text);
         border-radius: 1em;
         font-size: medium;
         /* border-bottom-right-radius: 1em;
@@ -420,10 +426,10 @@ onMounted(async () => {
   bottom: 3em;
   width: auto;
   height: auto;
-  background-color: #1f1f1f;
+  background-color: var(--color-background);
   border-radius: 1em;
   padding: 0.4em 0.8em;
-  color: #888;
+  color: var(--color-text);
   cursor: pointer;
 
   display: flex;
@@ -436,8 +442,8 @@ onMounted(async () => {
   visibility: hidden;
 
   &:hover {
-    background-color: #cecece;
-    color: #1f1f1f;
+    background-color: var(--color-hover);
+    color: var(--color-hover-text);
   }
 
   &.show {
@@ -453,7 +459,7 @@ onMounted(async () => {
 
     display: block;
     text-align: center;
-    background-color: #74b8f7;
+    background-color: var(--color-theme);
     color: #ffffff;
     border-radius: 0.75em;
     width: auto;
@@ -479,7 +485,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
 
-  background-color: #74b8f7;
+  background-color: var(--color-theme);
 
   opacity: 0;
   visibility: hidden;

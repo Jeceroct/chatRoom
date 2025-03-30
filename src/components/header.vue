@@ -11,33 +11,33 @@
 <script setup>
 import { ref } from 'vue'
 
-const roomName = ref('望子成龙小学')
+const roomName = ref('聊天室')
 </script>
 
 <style scoped>
 .container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 10px;
-  background-color: #1f1f1f;
+  background-color: var(--color-background);
   position: absolute;
   top: 0;
   left: 0;
   width: calc(100% - 20px);
   z-index: 1000;
-  height: 4em;
+  height: 2em;
 
   h1 {
-    color: #cecece;
-    font-size: 1.5em;
+    color: var(--color-text);
+    font-size: 1.2em;
     font-weight: bold;
   }
 
   .more {
     position: absolute;
     right: 0.5em;
-    color: #cecece;
+    color: var(--color-text);
     font-size: 1.5em;
     padding: 0.5em;
     height: 1em;
@@ -47,8 +47,8 @@ const roomName = ref('望子成龙小学')
     transition: all 0.2s ease-in-out;
 
     &:hover {
-      background-color: #cecece;
-      color: #1f1f1f; 
+      background-color: var(--color-hover);
+      color: var(--color-hover-text);
     }
   }
 }

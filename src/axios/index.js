@@ -1,6 +1,7 @@
 import axios from "axios";
-import { ElMessage } from "element-plus";
+// import { ElMessage } from "element-plus";
 import router from "@/router/index.js";
+import myMessage from "@/utils/myMessage";
 
 const request = axios.create({
   baseURL: process.env.VUE_APP_API_ADDR
@@ -18,7 +19,8 @@ request.interceptors.request.use(config => {
   config.headers['token'] = user.token || ''
   return config
 }, error => {
-  ElMessage.error('无法连接至服务器')
+  // ElMessage.error('无法连接至服务器')
+  myMessage('无法连接至服务器', 'error')
   return Promise.reject(error)
 });
 
@@ -33,7 +35,8 @@ request.interceptors.response.use(
     }
     // 当权限验证不通过的时候给出提示
     if (res.code === '401') {
-      ElMessage.error(res.msg)
+      // ElMessage.error(res.msg)
+      myMessage(res.msg, 'error')
       router.push('/login')
     }
     // 兼容服务端返回的字符串数据
@@ -50,19 +53,26 @@ request.interceptors.response.use(
     if (error.response.status === 404) {
       // ElMessage.error('未知的请求接口')
     } else if (error.response.status === 500) {
-      ElMessage.error('无法连接至服务器')
+      // ElMessage.error('无法连接至服务器')
+      myMessage('无法连接至服务器', 'error')
     } else if (error.response.status === 501) {
-      ElMessage.error('Redis连接失败')
+      // ElMessage.error('Redis连接失败')
+      myMessage('Redis连接失败', 'error')
     } else if (error.response.status === 901) {
-      ElMessage.error('未知的消息格式')
+      // ElMessage.error('未知的消息格式')
+      myMessage('未知的消息格式', 'error')
     } else if (error.response.status === 902) {
-      ElMessage.error('文件发送失败')
+      // ElMessage.error('文件发送失败')
+      myMessage('文件发送失败', 'error')
     } else if (error.response.status === 903) {
-      ElMessage.error('文件接收失败')
+      // ElMessage.error('文件接收失败')
+      myMessage('文件接收失败', 'error')
     } else if (error.response.status === 904) {
-      ElMessage.error('文件创建失败')
+      // ElMessage.error('文件创建失败')
+      myMessage('文件创建失败', 'error')
     } else {
-      ElMessage.error('未知错误')
+      // ElMessage.error('未知错误')
+      myMessage('未知错误', 'error')
       console.error(error.message)
     }
     setTimeout(() => {

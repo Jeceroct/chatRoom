@@ -1,0 +1,23 @@
+:root {
+  --color-background: #ffffff;
+  --color-background-soft: #dbdbdb;
+  --color-text: #1f1f1f;
+
+  --color-hover: #adc1ec;
+  --color-hover-text: #222222;
+
+  --color-theme: #5565bd;
+}
+
+@media screen and (prefers-color-scheme: dark)  {
+  :root {
+    --color-background: #1f1f1f;
+    --color-background-soft: #2d2d2d;
+    --color-text: #eaeaea;
+
+    --color-hover: #2a296a;
+    --color-hover-text: #e3e3e3;
+
+    --color-theme: #3f4a8b;
+  }
+}

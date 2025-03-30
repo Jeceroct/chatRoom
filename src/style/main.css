@@ -1,15 +1,16 @@
+@import './base.css';
 body {
-    background-color: #2d2d2d;
-    color: #ffffff;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 16px;
-    overflow: hidden;
-    margin: 0;
-    box-sizing: border-box;
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  overflow: hidden;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 div {
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .el-input__wrapper {
@@ -26,18 +27,20 @@ div {
 }
 
 .el-message {
-  border-radius: 1.4em;
-  z-index: 999;
-  margin-top: 5em;
-  /* margin-left: 1em; */
+  border-radius: 0;
+  z-index: 900;
+  margin: 0;
+  margin-top: 2em;
   background-color: #1f1f1f;
   border: 0;
   text-align: center;
-  width: auto;
-  min-width: 4em;
-  font-family: '微软雅黑','Courier New', Courier, monospace;
+  width: 100vw;
+  font-family: '微软雅黑', 'Courier New', Courier, monospace;
 
   position: absolute;
+
+  transform: translateX(0);
+  left: 0;
 
   .el-message__content {
     font-size: 14px;

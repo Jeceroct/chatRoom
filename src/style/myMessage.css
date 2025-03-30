@@ -1,0 +1,61 @@
+.myMessage {
+  /* opacity: 0; */
+  transition: all 0.2s ease-in-out;
+  z-index: 0;
+  position: absolute;
+
+  /* transform: translateY(-100%); */
+  margin-top: 20px;
+
+  padding: 0.2em 0.5em;
+
+  width: 100vw;
+  height: 2em;
+
+  background-color: var(--color-background);
+
+  p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+  }
+
+  &.info {
+    p {
+      color: #bfbfbf;
+    }
+  }
+
+  &.success {
+    p {
+      color: #70d570;
+    }
+  }
+
+  &.warning {
+    p {
+      color: #dddd72;
+    }
+  }
+
+  &.error {
+    p {
+      color: #ce3e3e;
+    }
+  }
+}
+
+.myMessage__show {
+  /* opacity: 1; */
+  --index: 0;
+  /* transform: translateY(calc((var(--index) - 1) * 2em)); */
+  margin-top: calc(2em * var(--index) + 20px);
+  z-index: 900;
+}
+
+.myMessage__content {
+  height: 100%;
+  width: calc(100% - 1em);
+}

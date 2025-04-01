@@ -63,6 +63,7 @@ func HandleFile(msg PostRequest, c *gin.Context) string {
 		c.JSON(903, gin.H{
 			"message": "文件接收失败",
 		})
+		return path
 	}
 	fmt.Println("文件接收成功")
 	file, err := os.Create(basePath + path)

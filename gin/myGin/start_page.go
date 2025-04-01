@@ -34,7 +34,7 @@ var (
 	alertIcon    []byte
 )
 
-var closeServer_start = make(chan bool, 1)
+var CloseServer_start = make(chan bool, 1)
 
 func Start(port string) *gin.Engine {
 
@@ -55,8 +55,9 @@ func Start(port string) *gin.Engine {
 
 	go func() {
 		for {
-			if <-closeServer_start {
+			if <-CloseServer_start {
 				server.Close()
+				Page <- RoutePage.ADDRESS_PAGE
 				break
 			}
 		}
@@ -69,16 +70,16 @@ func Start(port string) *gin.Engine {
 	reGet = myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 	if reSend == nil || reGet == nil {
 		fmt.Println("连接远程数据库失败")
-		closeServer_start <- true
-		Page <- RoutePage.ADDRESS_PAGE
+		CloseServer_start <- true
 		return nil
 	}
 
 	// 监听远程数据库消息列表
 	channel := make(chan postType.PostRequest, config.NumOfConcurrentMsg())
-	StartListen(reGet, "chat", channel, closeServer_start)
+	StartListen(reGet, "chat", channel, CloseServer_start)
 
-	Post(gi, reSend, channel, closeServer_start)
+	Post(gi, reSend, channel, CloseServer_start)
+	SettingPost(gi)
 
 	return gi
 }
@@ -185,7 +186,7 @@ func onReady() {
 	})
 	mQuit := systray.AddMenuItem("退出", "退出程序")
 	mQuit.Click(func() {
-		closeServer_start <- true
+		CloseServer_start <- true
 		systray.Quit()
 		os.Exit(0)
 	})

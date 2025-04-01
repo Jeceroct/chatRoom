@@ -4,25 +4,25 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'routeMask',
-  data() {
-    return {
-      routeMaskEle: null
-    }
-  },
-  mounted() {
-    this.routeMaskEle = document.querySelector('#routeMask')
+<script setup>
+import { onMounted,defineExpose } from 'vue'
+
+var routeMaskEle
+
+defineExpose({
+  routeMaskEle
+})
+
+onMounted(() =>{
+  routeMaskEle = document.querySelector('#routeMask')
+  setTimeout(() => {
+    routeMaskEle.classList.add('enter')
     setTimeout(() => {
-      this.routeMaskEle.classList.add('enter')
-      setTimeout(() => {
-        this.routeMaskEle.classList.add('waiting')
-        this.routeMaskEle.classList.remove('enter')
-      }, 300)
-    }, 100)
-  }
-}
+      routeMaskEle.classList.add('waiting')
+      routeMaskEle.classList.remove('enter')
+    }, 300)
+  }, 100)
+})
 </script>
 
 <style>
@@ -33,7 +33,7 @@ export default {
   width: 100%;
   height: 100%;
   background-color: #2d2d2d;
-  z-index: 99;
+  z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;

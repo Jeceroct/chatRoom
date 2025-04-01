@@ -8,9 +8,9 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-func Connect(addr string, password string, db string, dbIndex int, ranges int) redis.Conn {
+func Connect(addr string, password string, db string, dbIndex int, reConnectTimes int) redis.Conn {
 	database, _ := strconv.Atoi(db)
-	for range ranges {
+	for range reConnectTimes {
 		conn, err := redis.Dial("tcp", addr, redis.DialPassword(password), redis.DialDatabase(database+dbIndex))
 		if err != nil {
 			fmt.Println("连接失败，正在重试...", err)

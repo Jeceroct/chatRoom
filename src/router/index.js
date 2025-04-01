@@ -22,6 +22,11 @@ const routes = [
     component: () => import('../views/room.vue')
   },
   {
+    path: '/setting',
+    name:'setting',
+    component: () => import('../views/setting.vue')
+  },
+  {
     path: '/connectionError',
     name:'connectionError',
     component: () => import('../views/connectionError.vue')

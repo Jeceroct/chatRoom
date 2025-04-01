@@ -21,7 +21,7 @@ type User struct {
 	Title    string `json:"title"`
 }
 
-var closeServer_user = make(chan bool, 1)
+var CloseServer_user = make(chan bool, 1)
 
 func BeforeStart(port string) {
 	gi := gin.Default()
@@ -41,7 +41,7 @@ func BeforeStart(port string) {
 	}()
 
 	for {
-		if <-closeServer_user {
+		if <-CloseServer_user {
 			server.Close()
 			Page <- RoutePage.ROOM_PAGE
 			fmt.Println("聊天室连接成功")
@@ -88,7 +88,7 @@ func user_post(gi *gin.Engine) {
 			// 关闭用户登录界面
 			go func() {
 				time.Sleep(1 * time.Second)
-				closeServer_user <- true
+				CloseServer_user <- true
 			}()
 		}
 	})

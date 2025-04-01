@@ -3,6 +3,7 @@ package myGin
 import (
 	"chatroom/config"
 	"chatroom/myRedis"
+	"chatroom/myUser"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ type Address struct {
 	DB       string `json:"db"`
 }
 
-var closeServer_address = make(chan bool, 1)
+var CloseServer_address = make(chan bool, 1)
 
 var server *http.Server
 
@@ -39,9 +40,13 @@ func ConnectRedis(port string) {
 	}()
 
 	for {
-		if <-closeServer_address {
+		if <-CloseServer_address {
 			server.Close()
-			Page <- RoutePage.ROOM_PAGE
+			if myUser.GetInfo().Id == "" {
+				Page <- RoutePage.USER_PAGE
+			} else {
+				Page <- RoutePage.ROOM_PAGE
+			}
 			fmt.Println("聊天室连接成功")
 			break
 		}
@@ -64,7 +69,7 @@ func addr_post(gi *gin.Engine) {
 			reCheck.Close()
 			go func() {
 				time.Sleep(1 * time.Second)
-				closeServer_address <- true
+				CloseServer_address <- true
 			}()
 		} else {
 			c.JSON(200, gin.H{
@@ -79,7 +84,7 @@ func addr_post(gi *gin.Engine) {
 		})
 		go func() {
 			time.Sleep(1 * time.Second)
-			closeServer_address <- true
+			CloseServer_address <- true
 		}()
 	})
 

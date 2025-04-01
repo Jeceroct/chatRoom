@@ -2,13 +2,14 @@
 <template>
   <div class="container">
     <h1>{{ roomName }}</h1>
-    <div class="more">
+    <div class="more" @click="leave('/setting')">
       <el-icon><MoreFilled /></el-icon>
     </div>
   </div>
 </template>
 
 <script setup>
+import { leave } from '@/utils/leave'
 import { ref } from 'vue'
 
 const roomName = ref('聊天室')

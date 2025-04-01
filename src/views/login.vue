@@ -24,8 +24,9 @@ import routeMask from '../components/routeMask.vue'
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus';
 import request from '../axios'
-import { useRouter } from 'vue-router'
-const router = useRouter();
+// import { useRouter } from 'vue-router'
+import { leave } from '@/utils/leave';
+// const router = useRouter();
 
 const idValue = ref('')
 const passwordValue = ref('')
@@ -34,12 +35,7 @@ const submitBtn = ref(null)
 
 const signup = () => {
   idValue.value = ''
-  const routeMaskEle = document.querySelector('#routeMask')
-  routeMaskEle.classList.add('leave')
-  routeMaskEle.classList.remove('waiting')
-  setTimeout(() => {
-    router.push('/signup')
-  }, 200)
+  leave('/signup')
 }
 
 const send = () => {

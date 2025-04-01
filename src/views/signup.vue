@@ -31,6 +31,7 @@ import { onMounted, ref } from 'vue'
 import request from '../axios'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus';
+import { leave } from '@/utils/leave';
 const router = useRouter();
 // const route = useRoute();
 // import { ElMessage } from 'element-plus'
@@ -54,12 +55,7 @@ const debounce = (fn, delay) => {
 
 const login = () => {
   idValue.value = ''
-  const routeMask = document.querySelector('#routeMask')
-  routeMask.classList.add('leave')
-  routeMask.classList.remove('waiting')
-  setTimeout(() => {
-    router.push('/login')
-  }, 200)
+  leave('/login')
 }
 
 const send = () => {

@@ -12,27 +12,18 @@
 <script setup>
 import routeMask from '../components/routeMask.vue'
 import request from '../axios'
-import { useRouter } from 'vue-router'
-const router = useRouter()
+// import { useRouter } from 'vue-router'
+import { leave } from '@/utils/leave'
+// const router = useRouter()
 
 const quit = () => {
-  const routeMaskEle = document.querySelector('#routeMask')
-  routeMaskEle.classList.add('leave')
-  routeMaskEle.classList.remove('waiting')
-  setTimeout(() => {
-    router.push('/address')
-  }, 200)
+  leave('/address')
 }
 
 const reConn = () => {
   request.post('/reConn', {}, {}).then(res => {
     if (res.code == '200') {
-      const routeMaskEle = document.querySelector('#routeMask')
-      routeMaskEle.classList.add('leave')
-      routeMaskEle.classList.remove('waiting')
-      setTimeout(() => {
-        router.push('/')
-      }, 200)
+      leave('/')
     }
   })
 }

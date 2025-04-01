@@ -46,3 +46,8 @@ func UpdateRoomName(name string) {
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
+
+func DeleteConfig() {
+	os.Remove(configPath)
+	payload = Config{}
+}

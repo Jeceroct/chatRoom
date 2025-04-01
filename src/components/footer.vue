@@ -218,7 +218,7 @@ const send = () => {
     RequestType.Type().text,
     inputValue.value,
     `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-    user.value,
+    localStorage.getItem('chatRoomUserInfo') ? JSON.parse(localStorage.getItem('chatRoomUserInfo')) : user.value,
     quoteValue
   )
   request.post('/send', msg.getResult()).then(() => {

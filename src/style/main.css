@@ -13,6 +13,36 @@ div {
   color: var(--color-text);
 }
 
+button {
+  width: 80%;
+  height: 3em;
+  border-radius: 2em;
+  margin: 0.8em 0;
+  background-color: rgb(98, 149, 110);
+  border: 2px solid rgb(98, 149, 110);
+  color: white;
+  cursor: pointer;
+
+  &.loginBtn {
+    margin-top: 3em;
+    background-color: rgba(214, 255, 224, 0.496);
+  }
+
+  &[disabled] {
+    background-color: rgba(179, 179, 179, 0.496) !important;
+    color: #454545 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+input[type="submit"],
+input[type="color"] {
+  cursor: pointer;
+}
+
+
+
+
 .el-input__wrapper {
   border-radius: 1.4em;
   transition: all 0.2s ease-in-out;

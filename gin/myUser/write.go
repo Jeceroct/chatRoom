@@ -46,3 +46,15 @@ func UpdatePhone(phone string) {
 	jsonData, _ := json.Marshal(payload)
 	os.WriteFile(configPath, jsonData, 0644)
 }
+
+func DeleteUserInfo() {
+	payload.Id = ""
+	payload.Name = ""
+	payload.Level = 0
+	payload.Avatar = ""
+	payload.Title = ""
+	payload.TitleColor = ""
+	payload.Phone = ""
+	jsonData, _ := json.Marshal(payload)
+	os.WriteFile(configPath, jsonData, 0644)
+}

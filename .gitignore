@@ -2,8 +2,11 @@
 node_modules
 /dist
 gin/dist
-gin/dist/temp
-gin/dist/download
+# gin/dist/temp
+# gin/dist/download
+gin/*.exe
+gin/*.syso
+gin/*.iss
 
 
 # local env files
@@ -29,3 +32,4 @@ gin/data.json
 gin/chatRoom.conf.json
 gin/roomConfig.json
 gin/user.conf.json
+安装器编译脚本.iss

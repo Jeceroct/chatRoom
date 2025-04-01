@@ -15,11 +15,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, onUnmounted } from 'vue'
 // import { ElMessage } from 'element-plus'
 import errorImg from '@/assets/error.jpg'
+import avatarError from '@/assets/avatarError.png'
 import request from '@/axios'
+import axios from "axios";
 import myMessage from '@/utils/myMessage'
+import { onBeforeRouteLeave } from 'vue-router'
 
 // var user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
 const user = computed(() => {
@@ -80,12 +83,14 @@ const addMsgHTML = async (msg, msgBoxEle) => {
                 <div class="time">${msg.time}</div>
                 <div class="text">`+ msg.context + `</div>
                 </div>
-                </div>`
+                <img class="avatar" onerror="javascript:this.src='${avatarError}'" src="${msg.from.avatar}">
+          </div>`
       // <div class="level">Lv${msg.from.level}</div>
     } else {
       newHtml = `
             <div class="msg first" userId="${msg.from.id}">
               <div class="user">
+              <img class="avatar" onerror="javascript:this.src='${avatarError}'" src="${msg.from.avatar}">
                 <div class="name">${msg.from.name}</div>
                 <div class="title" style="background-color:${msg.from.titleColor}">${msg.from.title}</div>
                 </div>
@@ -182,6 +187,9 @@ const initBtnPos = () => {
   newMsgElement.style.left = container.clientWidth / 2 - newMsgElement.clientWidth / 2 + 'px'
 }
 
+
+const isActive = ref(true); // 控制循环是否执行
+const abortController = new AbortController(); // 用于取消请求
 onMounted(async () => {
   const container = document.querySelector('#bodyContainer')
   // 加载历史消息(只加载最后100条)
@@ -203,7 +211,7 @@ onMounted(async () => {
 
   // 定义滚动到底部按钮和新消息按钮的位置
   initBtnPos()
-  window.addEventListener('resize', debounce(initBtnPos, 250));
+  window.addEventListener('resize', debouncedHandler);
 
   const scrollToBtmEle = document.querySelector('.scrollToBtm')
   const newMsgElement = document.querySelector('.newMsg')
@@ -233,31 +241,54 @@ onMounted(async () => {
   })
 
   // 监听新消息
-  // for (; ;) {
-  //   const error = ref(null)
-  //   const res = await request.post('/get').catch(err => error.value = err)
-  //   if (error.value) {
-  //     await sleep(5000)
-  //   } else {
-  //     console.log(res.message)
-  //     // const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
-  //     var isScrolledToBottom
-  //     res.message.forEach(i => {
-  //       isScrolledToBottom = !( newMsgRef.value.classList.contains('show') || scrollToBtmRef.value.classList.contains('show') )
-  //       addMsgHTML(i, msgBoxEle)
-  //     });
+  for (; isActive.value;) {
+    const error = ref(null)
+    let res
+    try {
+      res = await request.post('/get',null, { signal: abortController.signal }).catch(err => { error.value = err })
+    } catch (err) {
+      if (err.name === 'AbortError' || axios.isCancel(err)) {
+        console.log('请求已被取消');
+        break;
+      }
+    }
+    if (error.value) {
+      await sleep(5000)
+    } else {
+      console.log(res.message)
+      // const isScrolledToBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 100
+      var isScrolledToBottom
+      res.message.forEach(i => {
+        isScrolledToBottom = !(newMsgRef.value.classList.contains('show') || scrollToBtmRef.value.classList.contains('show'))
+        addMsgHTML(i, msgBoxEle)
+      });
 
-  //     // 判断container内部是否已经滚动到最底部
-  //     if (isScrolledToBottom) {
-  //       container.scrollTop = container.scrollHeight - container.clientHeight
-  //     } else {
-  //       const newMsg = document.querySelector('.newMsg')
-  //       newMsg.classList.add('show')
-  //       scrollToBtmEle.classList.remove('show')
-  //       newMsgNum.value += res.message.length
-  //     }
-  //   }
-  // }
+      // 判断container内部是否已经滚动到最底部
+      if (isScrolledToBottom) {
+        container.scrollTop = container.scrollHeight - container.clientHeight
+      } else {
+        const newMsg = document.querySelector('.newMsg')
+        newMsg.classList.add('show')
+        scrollToBtmEle.classList.remove('show')
+        newMsgNum.value += res.message.length
+      }
+    }
+  }
+})
+
+const debouncedHandler = debounce(initBtnPos, 250);
+
+onUnmounted(() => {
+  isActive.value = false;
+  abortController.abort();
+  window.removeEventListener('resize', debouncedHandler);
+})
+
+onBeforeRouteLeave((to,from,next) => {
+  isActive.value = false;
+  abortController.abort();
+  window.removeEventListener('resize', debouncedHandler);
+  next()
 })
 </script>
 
@@ -294,16 +325,26 @@ onMounted(async () => {
     .msg {
       display: flex;
       flex-direction: column;
-      width: 100%;
+      width: calc(100% - 2em);
       justify-content: start;
       align-items: start;
       margin-bottom: 0.2em;
+      margin-left: 2em;
+      position: relative;
 
       &.myself {
         align-items: end;
+        margin-left: 0;
+        margin-right: 2em;
+
 
         .textBox {
           justify-content: end;
+        }
+
+        .avatar {
+          left: unset;
+          right: -3em;
         }
 
         &.first .text {
@@ -360,6 +401,17 @@ onMounted(async () => {
 
       .textBox {
         display: flex;
+      }
+
+      .avatar {
+        height: 2.5em;
+        width: 2.5em;
+        border-radius: 50%;
+        margin: 0 0.25em;
+        user-select: none;
+        position: absolute;
+        top: 0;
+        left: -3em;
       }
 
       .text {

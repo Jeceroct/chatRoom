@@ -66,18 +66,43 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 	// 从redis获取消息
 	gi.POST("/get", func(c *gin.Context) {
 		var res []postType.PostRequest
+
 		// 如果channel已满，则一次性取出所有消息再返回，否则取一条就返回
 		if len(channel) == cap(channel) {
 			for {
-				if len(channel) == 0 {
-					break
-				}
 				msg := <-channel
+
+				// TODO 判断客户端已取消请求
+				select {
+				case <-c.Done():
+					{
+						fmt.Println("客户端已取消请求")
+						select {
+						case channel <- msg:
+							fmt.Println("消息回放成功")
+						default:
+							fmt.Println("警告！channel已满，消息丢失")
+						}
+						return
+					}
+				default:
+				}
 				msg = postType.TypeCheck(msg, c)
 				res = append(res, msg)
 			}
 		} else {
 			msg := <-channel
+
+			// TODO 判断客户端已取消请求
+			select {
+			case <-c.Done():
+				{
+					fmt.Println("客户端已取消请求")
+					channel <- msg
+					return
+				}
+			default:
+			}
 			msg = postType.TypeCheck(msg, c)
 			res = append(res, msg)
 		}

@@ -63,6 +63,7 @@ export class Status {
 
   startGetStatus() {
     this.stop = false
+    console.log('开始获取状态')
   }
 
   static getInstance() {

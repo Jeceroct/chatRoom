@@ -71,6 +71,12 @@ request.interceptors.response.use(
     } else if (error.response.status === 904) {
       // ElMessage.error('文件创建失败')
       myMessage('文件创建失败', 'error')
+    } else if (error.response.status === 905) {
+      // ElMessage.error('未知的用户信息格式')
+      myMessage('未知的用户信息格式', 'error')
+    } else if (error.response.status === 906) {
+      // ElMessage.error('用户信息不存在')
+      myMessage('用户信息不存在', 'error')
     } else {
       // ElMessage.error('未知错误')
       myMessage('未知错误', 'error')

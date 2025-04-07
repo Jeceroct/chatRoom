@@ -19,6 +19,7 @@ type User struct {
 	Password string `json:"password"`
 	Name     string `json:"name"`
 	Title    string `json:"title"`
+	Avatar   string `json:"avatar"`
 }
 
 var CloseServer_user = make(chan bool, 1)

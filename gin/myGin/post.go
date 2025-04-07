@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -33,6 +34,31 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 			})
 			return
 		}
+
+		// 检查发送信息的用户是否存在
+		reget := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+		ok, _ := redis.Bool(reget.Do("EXISTS", req.From.Id))
+		if !ok {
+			fmt.Println("用户信息不存在！")
+			c.JSON(903, gin.H{
+				"err": "用户信息不存在，请先注册再发送消息",
+			})
+			reget.Close()
+			return
+		}
+		// 提出头像
+		var user User
+		context, _ := reget.Do("GET", req.From.Id)
+		json.Unmarshal(context.([]byte), &user)
+		user.Avatar = req.From.Avatar
+		jsonUser, _ := json.Marshal(user)
+		_, err := reget.Do("SET", req.From.Id, jsonUser)
+		if err != nil {
+			fmt.Println("用户头像提取失败", err)
+		}
+		reget.Close()
+		req.From.Avatar = ""
+
 		if req.Type == "file" {
 			file := postType.ParseFileContext(req)
 			var err error
@@ -45,7 +71,9 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 			}
 		}
 		jsonMsg, _ := json.Marshal(req)
-		_, err := re.Do("RPUSH", "chat", jsonMsg)
+
+		// 将消息写入redis
+		_, err = re.Do("RPUSH", "chat", jsonMsg)
 		if err != nil {
 			fmt.Println(err)
 			c.JSON(501, gin.H{
@@ -58,7 +86,9 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 			}
 			return
 		}
+
 		c.JSON(200, gin.H{
+			"code":    200,
 			"message": "消息已发送: " + req.Context,
 		})
 	})
@@ -71,37 +101,29 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 		if len(channel) == cap(channel) {
 			for {
 				msg := <-channel
+				msg.From.Avatar = handleAvatar(msg)
 
-				// TODO 判断客户端已取消请求
-				select {
-				case <-c.Done():
-					{
-						fmt.Println("客户端已取消请求")
-						select {
-						case channel <- msg:
-							fmt.Println("消息回放成功")
-						default:
-							fmt.Println("警告！channel已满，消息丢失")
-						}
-						return
+				if isAbort(c) {
+					fmt.Println("客户端已取消请求")
+					select {
+					case channel <- msg:
+						fmt.Println("消息回放成功")
+					default:
+						fmt.Println("警告！channel已满，消息丢失")
 					}
-				default:
+					return
 				}
 				msg = postType.TypeCheck(msg, c)
 				res = append(res, msg)
 			}
 		} else {
 			msg := <-channel
+			msg.From.Avatar = handleAvatar(msg)
 
-			// TODO 判断客户端已取消请求
-			select {
-			case <-c.Done():
-				{
-					fmt.Println("客户端已取消请求")
-					channel <- msg
-					return
-				}
-			default:
+			if isAbort(c) {
+				fmt.Println("客户端已取消请求")
+				channel <- msg
+				return
 			}
 			msg = postType.TypeCheck(msg, c)
 			res = append(res, msg)
@@ -171,8 +193,8 @@ func uploadFile(file postType.FileType) (string, error) {
 		return "", fmt.Errorf("redis连接失败")
 	}
 	for i := 0; ; i++ {
-		_, err := reRead.Do("GET", file.Title)
-		if err != nil {
+		ok, _ := redis.Bool(reRead.Do("GET", file.Title))
+		if ok {
 			file.Title = file.Title + "(" + fmt.Sprint(i) + ")"
 		} else {
 			break
@@ -221,4 +243,36 @@ func notify(res []postType.PostRequest) {
 func toUTF8(s string) string {
 	utf8Bytes, _ := unicode.UTF8.NewEncoder().Bytes([]byte(s))
 	return string(utf8Bytes)
+}
+
+// TODO 判断客户端已取消请求
+func isAbort(c *gin.Context) bool {
+	select {
+	case <-c.Done():
+		return true
+	default:
+		return false
+	}
+}
+
+// 处理头像
+func handleAvatar(msg postType.PostRequest) string {
+	path := "./dist/avatar/" + msg.From.Id
+	// 若不存在则创建文件夹并写入头像文件
+	if _, err := os.Stat("./dist/avatar/"); os.IsNotExist(err) {
+		os.Mkdir("./dist/avatar/", os.ModePerm)
+	}
+	if _, err := os.Stat(path); err != nil {
+		// 提取Base64编码部分
+		base64Data := msg.From.Avatar[strings.Index(msg.From.Avatar, ",")+1:]
+		data, _ := base64.StdEncoding.DecodeString(base64Data)
+		file, err := os.Create(path)
+		file.Write(data)
+		if err != nil {
+			fmt.Println("写入头像文件失败", err)
+			return msg.From.Avatar
+		}
+		file.Close()
+	}
+	return "/avatar/" + msg.From.Id
 }

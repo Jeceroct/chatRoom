@@ -59,6 +59,14 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest, cl
 					fmt.Println("消息转换时出错:", err)
 					continue
 				}
+				reget := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+				var userA User
+				context, _ := reget.Do("GET", postReq.From.Id)
+				if context != nil {
+					json.Unmarshal(context.([]byte), &userA)
+					postReq.From.Avatar = userA.Avatar
+				}
+				reget.Close()
 				channel <- postReq
 			}
 		}

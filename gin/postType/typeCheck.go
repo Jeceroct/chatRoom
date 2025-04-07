@@ -49,6 +49,8 @@ func HandleFile(msg PostRequest, c *gin.Context) string {
 	if _, err := os.Stat(basePath + path); err == nil {
 		// 直接使用cmd打开文件
 		absPath, _ := filepath.Abs(basePath + path)
+		// absPath = "\"" + absPath + "\""
+		fmt.Println("打开文件：", absPath)
 		cmd := exec.Command("cmd", "/c", "start", absPath)
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		go cmd.Run()
@@ -80,6 +82,8 @@ func HandleFile(msg PostRequest, c *gin.Context) string {
 		fmt.Println("保存文件时发生错误：", err)
 	}
 	absPath, _ := filepath.Abs(basePath + path)
+	// absPath = "\"" + absPath + "\""
+	fmt.Println("打开文件：", absPath)
 	cmd := exec.Command("cmd", "/c", "start", absPath)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	go cmd.Run()

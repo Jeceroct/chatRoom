@@ -4,13 +4,13 @@
   <div id="dropUpload">
     <h2>上传文件</h2>
   </div>
-  <EmojiPicker :native="true" :theme="'dark'" :display-recent="true"
-    :static-texts="{ placeholder: '搜索表情', skinTone: '更换肤色' }" :group-names="emojiGroup" @select="insertEmoji"
+  <EmojiPicker :native="true" :theme="'auto'" :display-recent="true" :disable-skin-tones="true" :hide-search="true"
+    :static-texts="{ placeholder: '搜索表情' }" :group-names="emojiGroup" @select="insertEmoji"
     class="emojiBox" />
   <div class="container">
     <form @submit.prevent="send">
       <div class="input">
-        <el-input v-model="inputValue">
+        <el-input v-model="inputValue" ref="inputEle">
           <template #prefix>
             <font-awesome-icon :icon="['fas', 'face-smile']" size="lg" @click="openEmoji" style="cursor: pointer;" />
           </template>
@@ -32,6 +32,9 @@ import { ref, computed, onMounted } from 'vue'
 import request from '@/axios'
 import RequestType from '@/class/RequestType'
 import myMessage from '@/utils/myMessage'
+import myDialog from '@/utils/myDialog'
+
+const inputEle = ref(null)
 
 const inputValue = ref('')
 
@@ -221,7 +224,11 @@ const send = () => {
     localStorage.getItem('chatRoomUserInfo') ? JSON.parse(localStorage.getItem('chatRoomUserInfo')) : user.value,
     quoteValue
   )
-  request.post('/send', msg.getResult()).then(() => {
+  request.post('/send', msg.getResult()).then((res) => {
+    if (res.code != 200) {
+      myMessage(res.msg, 'error')
+      return
+    }
     inputValue.value = ''
     quoteValue.value = null
     const emojiBox = document.querySelector('.emojiBox')
@@ -231,8 +238,37 @@ const send = () => {
   })
 }
 
+// 监听粘贴事件
+const handlePaste = (e) => {
+  // 检查粘贴的内容是否为图片
+  e.preventDefault()
+  console.log(e.clipboardData)
+  if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+    const file = e.clipboardData.files[0]
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    if (file.type.indexOf('image') === -1) {
+      // 粘贴文件
+      reader.onload = () => {
+        myDialog('文件', 'file', file.name, '发送文件', uploadFile, file)
+      }
+    } else {
+      // 粘贴图片
+      reader.onload = () => {
+        myDialog('', 'image', reader.result, '发送图片', uploadFile, file)
+      }
+    }
+  } else {
+    // 粘贴的内容不是图片，执行默认粘贴操作
+    const pastedText = e.clipboardData.getData('text/plain')
+    inputValue.value = pastedText
+    inputEle.value.focus()
+  }
+}
+
 onMounted(() => {
   initDropUpload()
+  document.addEventListener('paste', handlePaste)
 })
 </script>
 

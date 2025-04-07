@@ -13,6 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/speaker"
+	"github.com/faiface/beep/wav"
 	"github.com/gin-gonic/gin"
 	"github.com/go-toast/toast"
 	"github.com/gomodule/redigo/redis"
@@ -225,11 +228,17 @@ func notify(res []postType.PostRequest) {
 
 	if notifyPeriod && notifySignal {
 		notifyPeriod = false
+		// 发送通知
 		notification := toast.Notification{
 			AppID:   "hrx.chatRoom",
 			Title:   toUTF8(res[0].From.Name),
 			Message: toUTF8(res[0].Context),
 		}
+		// 播放通知音
+		if err := playSound("./msg.wav"); err != nil {
+			fmt.Println("播放音频失败:", err)
+		}
+
 		if err := notification.Push(); err != nil {
 			panic(err)
 		}
@@ -275,4 +284,27 @@ func handleAvatar(msg postType.PostRequest) string {
 		file.Close()
 	}
 	return "/avatar/" + msg.From.Id
+}
+
+// 播放通知音
+func playSound(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	streamer, format, err := wav.Decode(f)
+	if err != nil {
+		return err
+	}
+	defer streamer.Close()
+
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+	done := make(chan bool)
+	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+		done <- true
+	})))
+	<-done
+	return nil
 }

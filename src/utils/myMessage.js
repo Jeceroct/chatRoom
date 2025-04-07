@@ -40,7 +40,7 @@ class message {
     this.content = myMessage;
   }
 
-  close(){
+  close() {
     close(this.content);
   }
 
@@ -53,14 +53,14 @@ class message {
 
 const close = (myMessage) => {
   index--;
-    myMessage.classList.remove('myMessage__show');
-    document.querySelectorAll('.myMessage').forEach((item) => {
-      item.style.setProperty('--index', item.style.getPropertyValue('--index') - 1);
-    })
-    setTimeout(() => {
-      myMessage.remove();
-    }, 200);
+  myMessage.classList.remove('myMessage__show');
+  document.querySelectorAll('.myMessage').forEach((item) => {
+    item.style.setProperty('--index', item.style.getPropertyValue('--index') - 1);
+  })
+  setTimeout(() => {
+    myMessage.remove();
+  }, 200);
 }
 
 export default myMessage;
-export {messageType}
+export { messageType }

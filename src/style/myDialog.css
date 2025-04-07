@@ -94,6 +94,7 @@
     margin: 0;
     &:nth-child(1) {
       margin-right: 10px;
+      color: var(--color-text);
     }
     &:nth-child(2) {
       background-color: var(--color-theme);

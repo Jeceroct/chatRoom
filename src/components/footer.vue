@@ -1,16 +1,16 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="emojiBoxMask"></div>
+  <textarea class="inputArea" v-model="inputValue" />
   <div id="dropUpload">
     <h2>上传文件</h2>
   </div>
   <EmojiPicker :native="true" :theme="'auto'" :display-recent="true" :disable-skin-tones="true" :hide-search="true"
-    :static-texts="{ placeholder: '搜索表情' }" :group-names="emojiGroup" @select="insertEmoji"
-    class="emojiBox" />
+    :static-texts="{ placeholder: '搜索表情' }" :group-names="emojiGroup" @select="insertEmoji" class="emojiBox" />
   <div class="container">
     <form @submit.prevent="send">
       <div class="input">
-        <el-input v-model="inputValue" ref="inputEle">
+        <el-input v-model="inputValue" ref="inputRef">
           <template #prefix>
             <font-awesome-icon :icon="['fas', 'face-smile']" size="lg" @click="openEmoji" style="cursor: pointer;" />
           </template>
@@ -27,14 +27,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 // import { ElMessage } from 'element-plus'
 import request from '@/axios'
 import RequestType from '@/class/RequestType'
 import myMessage from '@/utils/myMessage'
 import myDialog from '@/utils/myDialog'
 
-const inputEle = ref(null)
+const inputRef = ref(null)
 
 const inputValue = ref('')
 
@@ -262,12 +262,27 @@ const handlePaste = (e) => {
     // 粘贴的内容不是图片，执行默认粘贴操作
     const pastedText = e.clipboardData.getData('text/plain')
     inputValue.value = pastedText
-    inputEle.value.focus()
+    inputRef.value.focus()
+  }
+}
+
+var inputArea
+// var inputEle
+// 监听输入长度
+const handleInput = () => {
+  if (inputValue.value.length > 20) {
+    inputArea.classList.add('show')
+  } else if (inputArea.classList.contains('show')) {
+    inputArea.classList.remove('show')
+    inputRef.value.focus()
   }
 }
 
 onMounted(() => {
   initDropUpload()
+  inputArea = document.querySelector('.inputArea')
+  // inputEle = document.querySelector('.input .el-input')
+  watch(inputValue, handleInput)
   document.addEventListener('paste', handlePaste)
 })
 </script>
@@ -383,6 +398,43 @@ onMounted(() => {
         color: #fff;
       }
     }
+  }
+}
+
+.inputArea {
+  background-color: #fff;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 1.4em;
+  z-index: 900;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  font-size: 1.2em;
+  border: 0;
+  width: 80vw;
+  height: 150px;
+  padding: 10px 25px;
+
+  font-weight: 400;
+  letter-spacing: 0.5px;
+
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow-y: scroll;
+
+  &.show {
+    opacity: 1;
+    pointer-events: all;
+    overflow-y: scroll;
+    bottom: 6em;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 </style>

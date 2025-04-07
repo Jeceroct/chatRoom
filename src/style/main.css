@@ -82,3 +82,9 @@ input[type="color"] {
     display: none;
   }
 }
+
+.el-input__prefix {
+  svg {
+    z-index: 999;
+  }
+}

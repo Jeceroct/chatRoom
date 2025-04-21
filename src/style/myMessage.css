@@ -16,6 +16,8 @@
 
   p {
     margin: 0;
+    padding: 3px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,25 +39,29 @@
 
   &.info {
     p {
-      color: #bfbfbf;
+      background-color: #bfbfbf;
+      color: rgb(43, 43, 43);
     }
   }
 
   &.success {
     p {
-      color: #70d570;
+      background-color: #84a684;
+      color: rgb(238, 238, 238);
     }
   }
 
   &.warning {
     p {
-      color: #dddd72;
+      background-color: #a8a86f;
+      color: rgb(238, 238, 238);
     }
   }
 
   &.error {
     p {
-      color: #ce3e3e;
+      background-color: #963838;
+      color: rgb(238, 238, 238);
     }
   }
 }

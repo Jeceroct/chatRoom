@@ -1,0 +1,31 @@
+.right-click-menu {
+  position: fixed;
+  background-color: var(--color-background);
+  padding: 5px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px var(--color-background-soft);
+  z-index: 9999;
+
+  opacity: 1;
+  transition: all 0.2s ease-in-out;
+
+  &.hide {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+.right-click-menu-item {
+  cursor: pointer;
+  margin: 5px 0;
+  padding: 5px;
+  border-radius: 10px;
+  color: var(--color-text);
+
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: var(--color-hover);
+    color: var(--color-hover-text);
+  }
+}

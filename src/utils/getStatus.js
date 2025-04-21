@@ -1,74 +1,84 @@
 import request from '../axios'
+import store from '../store';
+
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 let instance;
 
 export class Status {
 
   stop = false
-  status = ''
   errorStatus = false
 
-  constructor() {
+  constructor(router) {
     if (instance) {
       return instance;
     }
     instance = this;
     this.stop = false;
-    this.status = '';
+    store.currentPage.value = '';
     this.errorStatus = false;
+    this.getStatus(router)
   }
 
-  getStatus(router) {
-    if (this.stop) return
-    request.post('/getStatus').then(res => {
-      switch (res.status) {
-        case "checkRoom":
-          if (this.status == 'checkRoom') return
-          console.log(res)
-          this.status = 'checkRoom'
-          // lastStatus = res.status
-          if (this.errorStatus) {
-            this.errorStatus = false
-            router.push('/connectionError');
-          } else {
-            router.push('/address');
-          }
-          break;
-        case "checkUser":
-          if (this.status == 'checkUser') return
-          console.log(res)
-          // lastStatus = res.status
-          this.status = 'checkUser'
-          router.push('/login');
-          break;
-        case "start":
-          if (this.status == 'start') return
-          console.log(res)
-          // lastStatus = res.status
-          this.status = 'start'
-          router.push('/room');
-          break;
+  async getStatus(router) {
+    for (; ;) {
+      await sleep(1000)
+      if (this.stop) continue
+      if (router == void 0) {
+        console.log('router is undefined')
+        return
       }
-    }).catch(err => {
-      console.log('连接服务器失败', err)
-      this.errorStatus = true
-      this.status = ''
-    })
+      request.post('/getStatus').then(res => {
+        switch (res.status) {
+          case "checkRoom":
+            if (store.currentPage.value == 'checkRoom') return
+            console.log(res)
+            store.currentPage.value = 'checkRoom'
+            // lastStatus = res.status
+            if (this.errorStatus) {
+              this.errorStatus = false
+              router.push('/connectionError');
+            } else {
+              router.push('/address');
+            }
+            break;
+          case "checkUser":
+            if (store.currentPage.value == 'checkUser') return
+            console.log(res)
+            // lastStatus = res.status
+            store.currentPage.value = 'checkUser'
+            router.push('/login');
+            break;
+          case "start":
+            if (store.currentPage.value == 'start') return
+            console.log(res)
+            // lastStatus = res.status
+            store.currentPage.value = 'start'
+            router.push('/room');
+            break;
+        }
+      }).catch(err => {
+        console.log('连接服务器失败', err)
+        this.errorStatus = true
+        store.currentPage.value = ''
+      })
+    }
   }
 
   stopGetStatus() {
     this.stop = true
-    console.log('停止获取状态')
+    console.log('停止获取状态', this.stop)
   }
 
   startGetStatus() {
     this.stop = false
-    console.log('开始获取状态')
+    console.log('开始获取状态', this.stop)
   }
 
-  static getInstance() {
+  static getInstance(router) {
     if (!instance) {
-      instance = new Status();
+      instance = new Status(router);
     }
     return instance;
   }

@@ -59,14 +59,17 @@ func listener(conn redis.Conn, key string, channel chan postType.PostRequest, cl
 					fmt.Println("消息转换时出错:", err)
 					continue
 				}
-				reget := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
+				// reget := myRedis.Connect(config.RedisAddr(), config.RedisPassword(), config.RedisDB(), 0, 3)
 				var userA User
-				context, _ := reget.Do("GET", postReq.From.Id)
-				if context != nil {
+				ok, _ := redis.Bool(conn.Do("EXISTS", postReq.From.Id))
+				if !ok {
+					fmt.Println("listener: 用户信息不存在！")
+				} else {
+					context, _ := conn.Do("GET", postReq.From.Id)
 					json.Unmarshal(context.([]byte), &userA)
 					postReq.From.Avatar = userA.Avatar
 				}
-				reget.Close()
+				// reget.Close()
 				channel <- postReq
 			}
 		}

@@ -1,18 +1,25 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
+  <Setting />
   <div class="container">
     <h1>{{ roomName }}</h1>
-    <div class="more" @click="leave('/setting')">
+    <div class="more" @click="showSetting">
       <el-icon><MoreFilled /></el-icon>
     </div>
   </div>
 </template>
 
 <script setup>
-import { leave } from '@/utils/leave'
+// import { leave } from '@/utils/leave'
 import { ref } from 'vue'
+import Setting from './setting.vue';
 
 const roomName = ref('聊天室')
+
+const showSetting = () => {
+  const settingContainer = document.querySelector('.settingContainer');
+  settingContainer.classList.add('show');
+}
 </script>
 
 <style scoped>

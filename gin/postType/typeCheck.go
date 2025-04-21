@@ -38,6 +38,20 @@ func TypeCheck(msg PostRequest, c *gin.Context) PostRequest {
 	return msg
 }
 
+// 打开下载文件夹
+func OpenDownloadFolder() {
+	// 如果download文件夹不存在，则创建
+	if _, err := os.Stat(basePath + "/download"); os.IsNotExist(err) {
+		os.Mkdir(basePath+"/download", os.ModePerm)
+	}
+	// 打开下载文件夹
+	path, _ := filepath.Abs(basePath + "/download")
+	cmd := exec.Command("cmd", "/c", "start", path)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	go cmd.Run()
+}
+
+// 下载文件
 func HandleFile(msg PostRequest, c *gin.Context) string {
 	// fileMsg := ParseFileContext(msg)
 	path := "/download/" + msg.Context
@@ -90,6 +104,7 @@ func HandleFile(msg PostRequest, c *gin.Context) string {
 	return path
 }
 
+// 处理图片
 func handleImage(msg PostRequest, c *gin.Context) string {
 	// 提取Base64编码部分
 	base64Data := msg.Context[strings.Index(msg.Context, ",")+1:]

@@ -43,8 +43,8 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 		ok, _ := redis.Bool(reget.Do("EXISTS", req.From.Id))
 		if !ok {
 			fmt.Println("用户信息不存在！")
-			c.JSON(903, gin.H{
-				"err": "用户信息不存在，请先注册再发送消息",
+			c.JSON(906, gin.H{
+				"msg": "请先注册登录再发送消息",
 			})
 			reget.Close()
 			return
@@ -116,8 +116,12 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 					}
 					return
 				}
-				msg = postType.TypeCheck(msg, c)
+				postType.TypeCheck(msg, c)
 				res = append(res, msg)
+				fmt.Println("/get : 收到大量消息: ", toUTF8(msg.From.Name), toUTF8(msg.Context))
+				if len(channel) == 0 {
+					break
+				}
 			}
 		} else {
 			msg := <-channel
@@ -128,18 +132,21 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 				channel <- msg
 				return
 			}
+			// 处理不同的消息类型
 			msg = postType.TypeCheck(msg, c)
 			res = append(res, msg)
+			fmt.Println("/get : 收到消息: ", toUTF8(msg.From.Name), toUTF8(msg.Context))
 		}
-		data.UpdateData(res)
-
-		// 间隔5秒发送通知
-		notify(res)
-		fmt.Println("收到消息: ", toUTF8(res[0].From.Name), toUTF8(res[0].Context))
 
 		c.JSON(200, gin.H{
 			"message": res,
 		})
+
+		// 更新历史消息
+		data.UpdateData(res)
+
+		// 发送通知
+		notify(res)
 	})
 
 	// 获取用户信息
@@ -178,6 +185,14 @@ func Post(gi *gin.Engine, re redis.Conn, channel chan postType.PostRequest, clos
 		}
 		path := postType.HandleFile(msg, c)
 		c.JSON(200, path)
+	})
+
+	// 打开下载文件夹
+	gi.POST("/openDownloadFolder", func(c *gin.Context) {
+		postType.OpenDownloadFolder()
+		c.JSON(200, gin.H{
+			"message": "下载文件夹已打开",
+		})
 	})
 
 	gi.POST("/getStatus", func(c *gin.Context) {
@@ -240,6 +255,7 @@ func notify(res []postType.PostRequest) {
 		}
 
 		if err := notification.Push(); err != nil {
+			fmt.Println("系统通知失败:", err)
 			panic(err)
 		}
 		go func() {

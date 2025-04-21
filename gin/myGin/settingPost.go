@@ -66,10 +66,9 @@ func SettingPost(gi *gin.Engine) {
 			"code": 200,
 			"msg":  "退出登录成功",
 		})
-		CloseServer_start <- true
-		Page <- RoutePage.USER_PAGE
 		// 删除user.conf.json文件
 		myUser.DeleteUserInfo()
+		CloseServer_start <- true
 	})
 
 	// 退出聊天室
@@ -79,13 +78,12 @@ func SettingPost(gi *gin.Engine) {
 			"code": 200,
 			"msg":  "退出聊天室成功",
 		})
-		CloseServer_start <- true
-		Page <- RoutePage.ADDRESS_PAGE
 		// 删除user.conf.json文件
 		myUser.DeleteUserInfo()
 		// 删除chatRoom.conf.json文件
 		config.DeleteConfig()
 		// 删除data.json文件
 		data.DeleteData()
+		CloseServer_start <- true
 	})
 }

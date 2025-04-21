@@ -57,7 +57,11 @@ func Start(port string) *gin.Engine {
 		for {
 			if <-CloseServer_start {
 				server.Close()
-				Page <- RoutePage.ADDRESS_PAGE
+				if config.RedisAddr() == "" {
+					Page <- RoutePage.ADDRESS_PAGE
+				} else {
+					Page <- RoutePage.USER_PAGE
+				}
 				break
 			}
 		}

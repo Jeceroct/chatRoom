@@ -1,20 +1,20 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="emojiBoxMask"></div>
-  <textarea class="inputArea" v-model="inputValue" />
+  <!-- <textarea class="inputArea" v-model="inputValue" /> -->
   <div id="dropUpload">
     <h2>上传文件</h2>
   </div>
   <EmojiPicker :native="true" :theme="'auto'" :display-recent="true" :disable-skin-tones="true" :hide-search="true"
     :static-texts="{ placeholder: '搜索表情' }" :group-names="emojiGroup" @select="insertEmoji" class="emojiBox" />
   <div class="container">
-    <form @submit.prevent="send">
+    <form :submit="send" id="inputForm">
       <div class="input">
-        <el-input v-model="inputValue" ref="inputRef">
-          <template #prefix>
+        <MyInput v-model="store.inputValue.value" :ref="store.inputRef">
+          <template #pre>
             <font-awesome-icon :icon="['fas', 'face-smile']" size="lg" @click="openEmoji" style="cursor: pointer;" />
           </template>
-        </el-input>
+        </MyInput>
         <el-button @click="more" id="moreBtn"><el-icon size="1.5em" color="#fff">
             <Files />
           </el-icon></el-button>
@@ -27,18 +27,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 // import { ElMessage } from 'element-plus'
 import request from '@/axios'
 import RequestType from '@/class/RequestType'
 import myMessage from '@/utils/myMessage'
+import { onBeforeRouteLeave } from 'vue-router'
+import MyInput from './utils/myInput.vue'
+import store from '@/store'
+import { handlePaste, uploadFile } from '@/utils/myRightMenuFuncs'
+import msg from '@/types/msg'
 import myDialog from '@/utils/myDialog'
-
-const inputRef = ref(null)
-
-const inputValue = ref('')
-
-const quoteValue = ref(null)
 
 const emojiGroup = {
   "recently_used": "最近使用",
@@ -51,14 +50,6 @@ const emojiGroup = {
   "symbols": "符号",
   "flags": "旗帜"
 }
-
-const msg = new RequestType(
-  RequestType.Type().text,
-  '',
-  new Date().toLocaleTimeString(),
-  RequestType.User(),
-  quoteValue
-)
 
 const user = computed(() => {
   const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
@@ -87,12 +78,13 @@ const openEmoji = () => {
 }
 
 const insertEmoji = (emoji) => {
-  const inputEle = document.querySelector('.el-input__inner')
+  // const inputEle = document.querySelector('.el-input__inner')
+  const inputEle = document.querySelector('.myInput textarea')
   inputEle.focus()
   const start = inputEle.selectionStart
   const end = inputEle.selectionEnd
   if (start === undefined || end === undefined) return
-  inputValue.value = inputEle.value.substring(0, start) + emoji.i + inputEle.value.substring(end)
+  store.inputValue.value = inputEle.value.substring(0, start) + emoji.i + inputEle.value.substring(end)
   const emojiBox = document.querySelector('.emojiBox')
   const emojiBoxMask = document.querySelector('.emojiBoxMask')
   emojiBox.classList.remove('show')
@@ -129,7 +121,18 @@ const initDropUpload = () => {
       // 在拖拽区域内松开鼠标（拖放完成/放入文件）
       case 'drop':
         for (let i = 0; i < e.dataTransfer.files.length; i++) {
-          uploadFile(e.dataTransfer.files[i])
+          console.log(e.dataTransfer.files[i])
+          if (e.dataTransfer.files[i].type.includes('image')) {
+            const reader = new FileReader()
+            const file = e.dataTransfer.files[i]
+            reader.readAsDataURL(file)
+            reader.onload = function (er) {
+              // console.log(er)
+              myDialog('', 'image', er.target.result, '发送图片', uploadFile, file)
+            }
+          } else{
+            myDialog('文件', 'file', e.dataTransfer.files[i].name, '发送文件', uploadFile, e.dataTransfer.files[i])
+          }
         }
         dropUploadEle.classList.remove('show')
         break
@@ -149,66 +152,11 @@ const more = async () => {
   })
 }
 
-const uploadFile = (file) => {
-  // 检测是否是图片
-  if (file.type.indexOf('image') === -1) {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = async () => {
-      msg.setRequestType(
-        RequestType.Type().file,
-        RequestType.FileContext(file.name, reader.result),
-        `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-        user.value,
-        quoteValue
-      )
-      // const elMsg = ElMessage({
-      //   message: `正在上传文件: ${file.name}`,
-      //   type: 'info',
-      //   duration: 0
-      // })
-      const elMsg = myMessage(`正在上传文件: ${file.name}`, 'info', 0)
-      elMsg.load()
-      request.post('/send', msg.getResult()).then(() => {
-        elMsg.close()
-      }).catch(() => {
-        // ElMessage.error('文件上传失败')
-        myMessage('文件上传失败', 'error')
-        elMsg.close()
-      })
-    }
-  } else {
-    // 获取文件base64内容
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = async () => {
-      msg.setRequestType(
-        RequestType.Type().image,
-        reader.result,
-        `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-        user.value,
-        quoteValue
-      )
-      // const elMsg = ElMessage({
-      //   message: `正在上传图片`,
-      //   type: 'info',
-      //   duration: 0
-      // })
-      const elMsg = myMessage(`正在上传图片`, 'info', 0)
-      elMsg.load()
-      request.post('/send', msg.getResult()).then(() => {
-        elMsg.close()
-      }).catch(() => {
-        elMsg.close()
-        // ElMessage.error('图片上传失败')
-        myMessage('图片上传失败', 'error')
-      })
-    }
+const send = (e) => {
+  if (e) {
+    e.preventDefault()
   }
-}
-
-const send = () => {
-  if (inputValue.value === '') {
+  if (store.inputValue.value === '') {
     // ElMessage({
     //     message: `请输入消息}`,
     //     type: 'info',
@@ -219,18 +167,18 @@ const send = () => {
   }
   msg.setRequestType(
     RequestType.Type().text,
-    inputValue.value,
+    store.inputValue.value,
     `${new Date().getMonth() + 1}.${new Date().getDate()} ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
     localStorage.getItem('chatRoomUserInfo') ? JSON.parse(localStorage.getItem('chatRoomUserInfo')) : user.value,
-    quoteValue
+    store.quoteValue
   )
   request.post('/send', msg.getResult()).then((res) => {
     if (res.code != 200) {
       myMessage(res.msg, 'error')
       return
     }
-    inputValue.value = ''
-    quoteValue.value = null
+    store.inputValue.value = ''
+    store.quoteValue = null
     const emojiBox = document.querySelector('.emojiBox')
     const emojiBoxMask = document.querySelector('.emojiBoxMask')
     emojiBox.classList.remove('show')
@@ -238,52 +186,14 @@ const send = () => {
   })
 }
 
-// 监听粘贴事件
-const handlePaste = (e) => {
-  // 检查粘贴的内容是否为图片
-  e.preventDefault()
-  console.log(e.clipboardData)
-  if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
-    const file = e.clipboardData.files[0]
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    if (file.type.indexOf('image') === -1) {
-      // 粘贴文件
-      reader.onload = () => {
-        myDialog('文件', 'file', file.name, '发送文件', uploadFile, file)
-      }
-    } else {
-      // 粘贴图片
-      reader.onload = () => {
-        myDialog('', 'image', reader.result, '发送图片', uploadFile, file)
-      }
-    }
-  } else {
-    // 粘贴的内容不是图片，执行默认粘贴操作
-    const pastedText = e.clipboardData.getData('text/plain')
-    inputValue.value = pastedText
-    inputRef.value.focus()
-  }
-}
-
-var inputArea
-// var inputEle
-// 监听输入长度
-const handleInput = () => {
-  if (inputValue.value.length > 20) {
-    inputArea.classList.add('show')
-  } else if (inputArea.classList.contains('show')) {
-    inputArea.classList.remove('show')
-    inputRef.value.focus()
-  }
-}
-
 onMounted(() => {
   initDropUpload()
-  inputArea = document.querySelector('.inputArea')
-  // inputEle = document.querySelector('.input .el-input')
-  watch(inputValue, handleInput)
   document.addEventListener('paste', handlePaste)
+})
+
+onBeforeRouteLeave((to, from, next) => {
+  document.removeEventListener('paste', handlePaste)
+  next()
 })
 </script>
 
@@ -357,7 +267,7 @@ onMounted(() => {
   left: 0;
   width: calc(100% - 20px);
   z-index: 9999;
-  height: 4em;
+  height: 3.2em;
 
   form {
     width: 100%;
@@ -365,15 +275,18 @@ onMounted(() => {
 
   .input {
     width: 100%;
-    height: 3.5em;
+    height: 3.2em;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: end;
 
-    .el-input {
+    .myInput {
       /* margin-right: 1em; */
       width: 100%;
-      height: 2.8em;
+      /* height: auto; */
+      height: 2.6em;
+      border-radius: 1.3em;
+      margin-bottom: 0.3em;
     }
 
     .el-button {
@@ -386,6 +299,7 @@ onMounted(() => {
         height: 3.5em;
         width: 3.5em;
         min-width: 3.5em;
+        margin-bottom: 0.1em;
         background-color: var(--color-theme);
         color: #fff;
       }
@@ -394,6 +308,7 @@ onMounted(() => {
         height: 3em;
         width: 3em;
         min-width: 3em;
+        margin-bottom: 0.4em;
         background-color: var(--color-background-soft);
         color: #fff;
       }

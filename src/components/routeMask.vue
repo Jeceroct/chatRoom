@@ -32,12 +32,12 @@ onMounted(() =>{
   right: 0;
   width: 100%;
   height: 100%;
-  background-color: #2d2d2d;
+  background-color: var(--color-background);
   z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: var(--color-text);
 
   &.enter {
     transition: all 0.1s ease-in-out;

@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import store from './store';
 import router from './router'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -21,8 +22,6 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 import { far } from '@fortawesome/free-regular-svg-icons'
 import { fab } from '@fortawesome/free-brands-svg-icons'
 
-/* add brands to the library */
-
 /* add icons to the library */
 library.add(fas, far, fab)
 
@@ -37,6 +36,8 @@ app.use(ElementPlus)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.component('EmojiPicker',EmojiPicker)
+
+app.use(store);
 
 app.use(router)
 

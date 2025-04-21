@@ -23,6 +23,9 @@ import request from '@/axios'
 import axios from "axios";
 import myMessage from '@/utils/myMessage'
 import { onBeforeRouteLeave } from 'vue-router'
+import myMenuItem from '@/utils/myMenuItem';
+import { copyToClipboard } from '@/utils/myRightMenuFuncs';
+import store from '@/store';
 
 // var user = JSON.parse(localStorage.getItem('chatRoomUserInfo'))
 const user = computed(() => {
@@ -52,7 +55,7 @@ const debounce = (fn, delay) => {
 };
 
 const addMsgHTML = async (msg, msgBoxEle) => {
-  var newHtml = ""
+  var newHtml = ''
   if (msgBoxEle.hasChildNodes() && msgBoxEle.lastChild.getAttribute("userId") == msg.from.id) {
     if (msg.from.id == user.value.id) {
       newHtml = `
@@ -111,20 +114,24 @@ const addMsgHTML = async (msg, msgBoxEle) => {
         i.src = errorImg
       }
       i.style.cursor = 'pointer'
+      // 图片左键点击事件
       i.addEventListener('click', () => {
         if (openImgPeriod.value) {
-          // 访问后端使用系统图片查看器打开
-          // request.post('/openImg', msg)
           // 使用新标签页打开
           window.open(process.env.VUE_APP_API_ADDR + msg.context)
           openImgPeriod.value = false
         } else {
-          // ElMessage.info('图片已打开，请勿多次点击')
           myMessage('图片已打开，请勿多次点击', 'info')
         }
         setTimeout(() => {
           openImgPeriod.value = true
         }, 2000)
+      })
+      // 图片右键点击事件
+      const thisEle = msgBoxEle.lastElementChild
+      thisEle.addEventListener('contextmenu', () => {
+        store.rightClickMenu.addItem(new myMenuItem('使用 系统图片查看器 打开', () => { request.post('/openImg', msg); myMessage('已在外部打开图片', 'success') }))
+        store.rightClickMenu.afterShow(() => { thisEle.classList.add('chosen') })
       })
     })
   } else
@@ -147,16 +154,10 @@ const addMsgHTML = async (msg, msgBoxEle) => {
           }
           if (openFilePeriod.value) {
             downloadingList.set(msgi.title)
-            // const elMsg = ElMessage({
-            //   message: `正在下载文件：${msgi.title}`,
-            //   type: 'info',
-            //   duration: 0
-            // })
             const elMsg = myMessage(`正在下载文件：${msgi.title}`, 'info', 0)
             request.post('/download', msgi).then(() => {
               elMsg.close()
             }).catch(() => {
-              // ElMessage.error(`${msgi.title}：下载失败`)
               myMessage(`${msgi.title}：下载失败`, 'error')
               elMsg.close()
             }).finally(() => {
@@ -164,18 +165,39 @@ const addMsgHTML = async (msg, msgBoxEle) => {
             })
             openFilePeriod.value = false
           } else {
-            // ElMessage.info('文件正在下载，请勿多次点击')
             myMessage('文件正在下载，请勿多次点击', 'info')
           }
           setTimeout(() => {
             openFilePeriod.value = true
           }, 2000)
         })
+        // 文件右键点击事件
+        const thisEle = msgBoxEle.lastElementChild
+        thisEle.addEventListener('contextmenu', () => {
+          // store.rightClickMenu.addItem(new myMenuItem('另存为(未完成)', () => {
+          //   const input = document.createElement('input');
+          //   input.type = 'file';
+          //   // input.setAttribute('webkitdirectory', ''); // 允许选择目录
+          //   // input.setAttribute('directory', ''); // 允许选择目录
+          //   input.click()
+          //   input.onchange = () => {
+          //     console.log(input.files)
+          //   }
+          // }))
+          store.rightClickMenu.addItem(new myMenuItem('打开 文件夹', () => {
+            request.post('/openDownloadFolder', msgi)
+          }))
+          store.rightClickMenu.afterShow(() => { thisEle.classList.add('chosen') })
+        })
       })
-    } else {
+    } else if (msg.type == 'text') {
       msgBoxEle.insertAdjacentHTML('beforeend', newHtml);
+      const thisEle = msgBoxEle.lastElementChild
+      thisEle.addEventListener('contextmenu', () => {
+        store.rightClickMenu.addItem(new myMenuItem('复制 此消息', copyToClipboard, msg.context))
+        store.rightClickMenu.afterShow(() => { thisEle.classList.add('chosen') })
+      })
     }
-  // msgsData.value += newHtml
 }
 
 const initBtnPos = () => {
@@ -187,17 +209,16 @@ const initBtnPos = () => {
   newMsgElement.style.left = container.clientWidth / 2 - newMsgElement.clientWidth / 2 + 'px'
 }
 
-
 const isActive = ref(true); // 控制循环是否执行
 const abortController = new AbortController(); // 用于取消请求
 onMounted(async () => {
   const container = document.querySelector('#bodyContainer')
-  // 加载历史消息(只加载最后100条)
+  // 加载历史消息(只加载最后500条)
   const msgBoxEle = document.querySelector('.msgBox')
   request.post('/getHistory').then(res => {
     if (res) {
-      if (res.length > 100) {
-        res = res.slice(res.length - 100, res.length)
+      if (res.length > 500) {
+        res = res.slice(res.length - 500, res.length)
       }
       console.log(res)
       res.forEach(i => {
@@ -245,7 +266,7 @@ onMounted(async () => {
     const error = ref(null)
     let res
     try {
-      res = await request.post('/get',null, { signal: abortController.signal }).catch(err => { error.value = err })
+      res = await request.post('/get', null, { signal: abortController.signal }).catch(err => { error.value = err })
     } catch (err) {
       if (err.name === 'AbortError' || axios.isCancel(err)) {
         console.log('请求已被取消');
@@ -253,6 +274,7 @@ onMounted(async () => {
       }
     }
     if (error.value) {
+      console.log(error.value)
       await sleep(5000)
     } else {
       console.log(res.message)
@@ -274,6 +296,7 @@ onMounted(async () => {
       }
     }
   }
+  console.log('消息监听循环已停止');
 })
 
 const debouncedHandler = debounce(initBtnPos, 250);
@@ -281,12 +304,14 @@ const debouncedHandler = debounce(initBtnPos, 250);
 onUnmounted(() => {
   isActive.value = false;
   abortController.abort();
+  console.log('请求已被取消');
   window.removeEventListener('resize', debouncedHandler);
 })
 
-onBeforeRouteLeave((to,from,next) => {
+onBeforeRouteLeave((to, from, next) => {
   isActive.value = false;
   abortController.abort();
+  console.log('请求已被取消');
   window.removeEventListener('resize', debouncedHandler);
   next()
 })
@@ -300,7 +325,8 @@ onBeforeRouteLeave((to,from,next) => {
   align-items: start;
   position: absolute;
   width: 100%;
-  top: 2em;
+  top: 2.2em;
+  padding-bottom: 5px;
 
   height: calc(100vh - 7em);
 
@@ -469,6 +495,15 @@ onBeforeRouteLeave((to,from,next) => {
           border-radius: 1em;
         }
       }
+
+      &.chosen {
+        background-color: var(--color-theme);
+        padding: 5px;
+        border-radius: 10px;
+        transform: scale(1.01);
+      }
+
+      transition: all 0.2s ease-in-out;
     }
   }
 }

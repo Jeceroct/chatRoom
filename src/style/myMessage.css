@@ -68,7 +68,8 @@
 
 .myMessage__show {
   --index: 0;
-  transform: translateY(calc(2em * var(--index) + 20px));
+  --top: 0;
+  transform: translateY(calc(2em * var(--index) + var(--top)));
   /* margin-top: calc(2em * var(--index) + 20px); */
   z-index: 900;
 }

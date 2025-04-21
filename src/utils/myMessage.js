@@ -9,7 +9,7 @@ const messageType = {
   error: 'error'
 }
 
-const myMessage = (content, type = messageType.info, duration = 3000) => {
+const myMessage = (content, type = messageType.info, duration = 3000, top = '20px') => {
   const myMessage = document.createElement('div');
   myMessage.classList.add('myMessage');
   myMessage.classList.add(type);
@@ -21,6 +21,7 @@ const myMessage = (content, type = messageType.info, duration = 3000) => {
   document.body.appendChild(myMessage);
   index++;
   myMessage.style.setProperty('--index', index);
+  myMessage.style.setProperty('--top', top);
   setTimeout(() => {
     myMessage.classList.add('myMessage__show');
     if (duration === 0) {

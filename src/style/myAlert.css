@@ -1,0 +1,57 @@
+.myAlert {
+  transition: all 0.2s ease-in-out;
+
+  padding: 0.2em 0.5em;
+  margin: 0.5em 0;
+
+  overflow: hidden;
+
+  width: 100%;
+  height: 0;
+
+  border-radius: 10px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9em;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+
+  &.info {
+    background-color: #bfbfbf;
+    color: rgb(43, 43, 43);
+  }
+
+  &.success {
+    background-color: #84a684;
+    color: rgb(238, 238, 238);
+  }
+
+  &.warning {
+    background-color: #a8a86f;
+    color: rgb(238, 238, 238);
+  }
+
+  &.error {
+    background-color: #963838;
+    color: rgb(238, 238, 238);
+  }
+
+  &.show {
+    height: 2em;
+  }
+}

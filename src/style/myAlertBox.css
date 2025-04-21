@@ -1,0 +1,13 @@
+#alertBox {
+  width: 80%;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  background-color: var(--color-background);
+  border-radius: 10px;
+
+  padding: 0 5px;
+
+  transition: all 0.2s ease-in-out;
+}

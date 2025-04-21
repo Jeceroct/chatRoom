@@ -30,8 +30,9 @@ import routeMask from '../components/routeMask.vue'
 import { onMounted, ref } from 'vue'
 import request from '../axios'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus';
 import { leave } from '@/utils/leave';
+import myAlertBox from '@/utils/myAlertBox';
+import MyAlert from '@/utils/myAlert';
 const router = useRouter();
 // const route = useRoute();
 // import { ElMessage } from 'element-plus'
@@ -43,6 +44,9 @@ const titleValue = ref('')
 const isIdUsed = ref(false)
 
 const submitBtn = ref(null)
+
+var container
+const myAlertBoxEle = myAlertBox()
 
 // 防抖函数
 const debounce = (fn, delay) => {
@@ -115,7 +119,7 @@ const send = () => {
       const routeMaskEle = document.querySelector('#routeMask')
       routeMaskEle.classList.add('leave')
       routeMaskEle.classList.remove('waiting')
-      ElMessage.success('注册成功')
+      myAlertBoxEle.add(new MyAlert('注册成功', 'success'))
       setTimeout(() => {
         router.push('/login')
       }, 200)
@@ -127,6 +131,8 @@ const send = () => {
 }
 
 onMounted(() => {
+  container = document.querySelector('.container')
+  myAlertBoxEle.showIn(container)
   const inputs = document.querySelectorAll('.input')
   inputs.forEach((input) => {
     input.addEventListener('input', () => {

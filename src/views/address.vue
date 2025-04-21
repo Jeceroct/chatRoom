@@ -14,6 +14,8 @@
       </div>
       <button ref="submitBtn" class="submitBtn" type="submit">确定</button>
     </el-form>
+
+    <div class="alertBoxes"></div>
   </div>
 </template>
 
@@ -23,13 +25,18 @@ import routeMask from '../components/routeMask.vue'
 import { onMounted, ref } from 'vue'
 import request from '../axios'
 // import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus';
+import myAlertBox from '@/utils/myAlertBox';
+import MyAlert from '@/utils/myAlert';
 // const router = useRouter();
 
 const addressValue = ref('')
 const passwordValue = ref('')
 
 const submitBtn = ref(null)
+
+var container
+
+const myAlertBoxEle = myAlertBox()
 
 const send = () => {
   console.log('send')
@@ -73,15 +80,20 @@ const send = () => {
       routeMaskEle.classList.add('leave')
       routeMaskEle.classList.remove('waiting')
     } else {
-      ElMessage.warning('聊天室地址或密码错误')
+      myAlertBoxEle.add(new MyAlert('聊天室地址或密码错误', 'warning'))
     }
   }).finally(() => {
     submitBtn.value.removeAttribute('disabled')
     submitBtn.value.innerHTML = '确定'
+  }).catch(err => {
+    console.log(err)
+    myAlertBoxEle.add(new MyAlert('聊天室地址或密码错误', 'warning'))
   })
 }
 
 onMounted(() => {
+  container = document.querySelector('.container')
+  myAlertBoxEle.showIn(container)
   const inputs = document.querySelectorAll('.input')
   inputs.forEach((input) => {
     input.addEventListener('input', () => {

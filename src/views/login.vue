@@ -22,16 +22,20 @@
 import routeMask from '../components/routeMask.vue'
 
 import { onMounted, ref } from 'vue'
-import { ElMessage } from 'element-plus';
 import request from '../axios'
 // import { useRouter } from 'vue-router'
 import { leave } from '@/utils/leave';
+import MyAlert from '@/utils/myAlert';
+import myAlertBox from '@/utils/myAlertBox';
 // const router = useRouter();
 
 const idValue = ref('')
 const passwordValue = ref('')
 
 const submitBtn = ref(null)
+
+var container
+const myAlertBoxEle = myAlertBox()
 
 const signup = () => {
   idValue.value = ''
@@ -78,15 +82,20 @@ const send = () => {
       routeMaskEle.classList.add('leave')
       routeMaskEle.classList.remove('waiting')
     } else {
-      ElMessage.warning('用户Id或密码错误')
+      myAlertBoxEle.add(new MyAlert('用户Id或密码错误', 'warning'))
     }
   }).finally(() => {
     submitBtn.value.removeAttribute('disabled')
     submitBtn.value.innerHTML = '进入'
+  }).catch(err => {
+    console.log(err)
+    myAlertBoxEle.add(new MyAlert('用户Id或密码错误', 'warning'))
   })
 }
 
 onMounted(() => {
+  container = document.querySelector('.container')
+  myAlertBoxEle.showIn(container)
   const inputs = document.querySelectorAll('.input')
   inputs.forEach((input) => {
     input.addEventListener('input', () => {

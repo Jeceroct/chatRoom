@@ -287,18 +287,18 @@ func handleAvatar(msg postType.PostRequest) string {
 	if _, err := os.Stat("./dist/avatar/"); os.IsNotExist(err) {
 		os.Mkdir("./dist/avatar/", os.ModePerm)
 	}
-	if _, err := os.Stat(path); err != nil {
-		// 提取Base64编码部分
-		base64Data := msg.From.Avatar[strings.Index(msg.From.Avatar, ",")+1:]
-		data, _ := base64.StdEncoding.DecodeString(base64Data)
-		file, err := os.Create(path)
-		file.Write(data)
-		if err != nil {
-			fmt.Println("写入头像文件失败", err)
-			return msg.From.Avatar
-		}
-		file.Close()
+	// if _, err := os.Stat(path); err != nil {
+	// 提取Base64编码部分
+	base64Data := msg.From.Avatar[strings.Index(msg.From.Avatar, ",")+1:]
+	data, _ := base64.StdEncoding.DecodeString(base64Data)
+	file, err := os.Create(path)
+	file.Write(data)
+	if err != nil {
+		fmt.Println("写入头像文件失败", err)
+		return msg.From.Avatar
 	}
+	file.Close()
+	// }
 	return "/avatar/" + msg.From.Id
 }
 

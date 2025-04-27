@@ -15,17 +15,17 @@
       <div class="nameSetting settings">
         <div class="inputBox">
           <span>昵称</span>
-          <input type="text" :value="userInfo.name">
+          <input type="text" v-model="nameInputRef">
         </div>
       </div>
       <div class="titleSetting settings">
         <div class="inputBox">
           <span>铭牌</span>
-          <input type="text" id="titleInput" :value="userInfo.title">
+          <input type="text" id="titleInput" v-model="titleInputRef">
           <div class="color" id="titleColor" @click="titleColorRef.click()"
             :style="`background-color: ${userInfo.titleColor};`">
           </div>
-          <input type="color" ref="titleColorRef" :value="userInfo.titleColor" style="display: none;">
+          <input type="color" ref="titleColorRef" :value="inputColor" style="display: none;">
         </div>
       </div>
       <button id="titleButton" @click="save">保存</button>
@@ -54,8 +54,10 @@ const hide = () => {
 }
 
 const userInfo = JSON.parse(localStorage.getItem('chatRoomUserInfo'));
+const nameInputRef = ref(userInfo.name);
+const titleInputRef = ref(userInfo.title);
 
-const opacity = ref(0);
+const opacity = ref('ff');
 const inputColor = ref(userInfo.titleColor)
 if (userInfo.titleColor.length !== 7) {
   opacity.value = userInfo.titleColor.slice(-2);
@@ -88,6 +90,10 @@ const uploadAvatar = () => {
 }
 
 const save = () => {
+  userInfo.name = nameInputRef.value;
+  userInfo.title = titleInputRef.value;
+  console.log(userInfo, nameInputRef.value);
+  localStorage.removeItem('chatRoomUserInfo');
   localStorage.setItem('chatRoomUserInfo', JSON.stringify(userInfo));
   request.post('/updateUserInfo', userInfo).then(res => {
     console.log(res);
@@ -95,7 +101,6 @@ const save = () => {
       myMessage(res.msg, 'error');
       return;
     }
-    myMessage('保存成功', 'success');
     const btn = document.querySelector('#titleButton');
     btn.innerText = '保存成功';
     btn.classList.add('success');
@@ -129,7 +134,23 @@ const exportData = () => {
     a.href = URL.createObjectURL(file)
     a.setAttribute('download', '聊天记录.txt')
     a.click()
-    myMessage('导出成功', 'success');
+    const btn = document.querySelector('#exportData');
+    btn.innerText = '导出成功';
+    btn.classList.add('success');
+    setTimeout(() => {
+      btn.classList.remove('success');
+      btn.innerText = '导出聊天记录';
+    }, 3000);
+  }).catch(err => {
+    console.log(err);
+    myMessage('导出失败', 'error');
+    const btn = document.querySelector('#exportData');
+    btn.innerText = '导出失败';
+    btn.classList.add('error');
+    setTimeout(() => {
+      btn.classList.remove('error');
+      btn.innerText = '导出聊天记录';
+    }, 3000);
   })
 }
 
@@ -141,7 +162,23 @@ const logout = () => {
         myMessage(res.msg, 'error');
         return
       }
-      myMessage('退出登录成功', 'success');
+      const btn = document.querySelector('#logout');
+      btn.innerText = '退出成功';
+      btn.classList.add('success');
+      setTimeout(() => {
+        btn.classList.remove('success');
+        btn.innerText = '退出登录';
+      }, 3000);
+    }).catch(err => {
+      console.log(err);
+      myMessage('退出失败', 'error');
+      const btn = document.querySelector('#logout');
+      btn.innerText = '退出失败';
+      btn.classList.add('error');
+      setTimeout(() => {
+        btn.classList.remove('error');
+        btn.innerText = '退出登录';
+      }, 3000);
     })
   })
 }
@@ -153,7 +190,23 @@ const leaveRoom = () => {
         myMessage(res.msg, 'error');
         return;
       }
-      myMessage('退出成功', 'success');
+      const btn = document.querySelector('#leaveRoom');
+      btn.innerText = '退出成功';
+      btn.classList.add('success');
+      setTimeout(() => {
+        btn.classList.remove('success');
+        btn.innerText = '退出聊天室';
+      }, 3000);
+    }).catch(err => {
+      console.log(err);
+      myMessage('退出失败', 'error');
+      const btn = document.querySelector('#leaveRoom');
+      btn.innerText = '退出失败';
+      btn.classList.add('error');
+      setTimeout(() => {
+        btn.classList.remove('error');
+        btn.innerText = '退出聊天室';
+      }, 3000);
     })
   })
 }
@@ -184,7 +237,23 @@ onMounted(() => {
           myMessage(res.msg, 'error');
           return;
         }
-        myMessage('导入成功', 'success');
+        const btn = document.querySelector('#importData');
+        btn.innerText = '导入成功，请重启应用';
+        btn.classList.add('success');
+        setTimeout(() => {
+          btn.classList.remove('success');
+          btn.innerText = '导入聊天记录';
+        }, 10000);
+      }).catch(err => {
+        console.log(err);
+        myMessage('导入失败', 'error');
+        const btn = document.querySelector('#importData');
+        btn.innerText = '导入失败';
+        btn.classList.add('error');
+        setTimeout(() => {
+          btn.classList.remove('error');
+          btn.innerText = '导入聊天记录';
+        }, 3000);
       })
     }
   }

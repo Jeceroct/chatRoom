@@ -131,7 +131,7 @@ func StartView(addr string) {
 		style |= win.WS_SIZEBOX | win.WS_CAPTION
 
 		// 去除最大化按钮
-		style &^= win.WS_MAXIMIZEBOX
+		// style &^= win.WS_MAXIMIZEBOX
 
 		// 设置样式
 		win.SetWindowLong(hWnd, win.GWL_STYLE, style)
